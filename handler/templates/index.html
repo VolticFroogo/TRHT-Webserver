@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Title -->
+        <title>Home | TRHT</title>
+
+        <!-- Import CSS -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+        <link rel="stylesheet" href="/css/style.css">
+
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+        <!-- SEO Meta Tags -->
+        <meta name="title" content="The Rabbit Hole Tearoom"/>
+        <meta name="description" content="The Rabbit Hole Tearoom is a small friendly tea room. We serve tea, coffee and a selection of sandwiches."/>
+        <meta name="keywords" content="The Rabbit Hole Tearoom, Tearoom, Rabbit Hole Tearoom"/>
+        <meta name="copyright" content="Copyright of Froogo."/>
+
+        <!-- Social Media Meta Tags -->
+        <meta property="og:title" content="The Rabbit Hole Tearoom"/>
+        <meta property="og:url" content="https://therabbitholetearoom.co.uk"/>
+        <meta property="og:image" content="https://therabbitholetearoom.co.uk/img/logo.png"/>
+        <meta property="og:description" content="The Rabbit Hole Tearoom is a small friendly tea room. We serve tea, coffee and a selection of sandwiches."/>
+    </head>
+
+    <body>
+        <!-- Navbar -->
+        <div class="navbar-fixed">
+            <nav class="teal lighten-2">
+                <div class="nav-wrapper container">
+                    <span class="hide-on-med-and-up">
+                        <a href="/" class="brand-logo">TRHTearoom</a>
+                    </span>
+                    <span class="hide-on-small-only">
+                        <a href="/" class="brand-logo">The Rabbit Hole Tearoom</a>
+                    </span>
+                    <a href="#" data-activates="side-bar" class="button-collapse"><i class="material-icons">menu</i></a>
+                    <ul class="right hide-on-med-and-down">
+                        <li><a href="#occasions">Occasions</a></li>
+                        <li><a href="#gallery">Gallery</a></li>
+                        <li><a href="#menu">Menu</a></li>
+                        <li><a href="#contact-us">Contact Us</a></li>
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <!-- Mobile Sidebar for Navbar -->
+        <ul class="side-nav" id="side-bar">
+            <li><a href="/">The Rabbit Hole Tearoom</a></li>
+            <li><div class="divider"></div></li>
+            <li><a class="subheader">Pages</a></li>
+            <li><a href="#occasions">Occasions</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#menu">Menu</a></li>
+            <li><a href="#contact-us">Contact Us</a></li>
+            <li><div class="divider"></div></li>
+            <li><a class="subheader">Admin</a></li>
+            <li><a href="admin/">Login</a></li>
+        </ul>
+
+        <div class="parallax-container">
+            <div class="section">
+                <div class="container">
+                <h1 class="center teal-text text-lighten-2" id="header">The Rabbit Hole Tearoom</h1>
+                <p class="flow-text center white-text">The Rabbit Hole Tearoom is a small friendly tea room. We serve tea, coffee and a selection of sandwiches. We'd be glad to serve you, if you care to join us.</p>
+                <div class="row center">
+                    <a href="#contact-us" class="waves-effect waves-light btn-large hide-on-small-only">Contact Us</a>
+                </div>
+                </div>
+            </div>
+            <div class="parallax">
+                <img src="img/background.jpg">
+            </div>
+        </div>
+
+        <div class="white">
+            <div class="container">
+                <!-- Occasions -->
+                <h3 class="header center" id="occasions">Occasions</h3>
+                <p class="flow-text center">We cater for a wide variety of occasions.</p>
+                <div class="row">
+                    <div class="col l4 s12">
+                        <div class="center">
+                        <i class="medium material-icons">today</i>
+                        <h5 class="header teal-text text-lighten-2">Flexible</h5>
+                        <p class="light-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Animi voluptate libero incidunt qui sint harum suscipit quidem nobis recusandae facilis velit, eum natus? Dolores quas, nesciunt ea dolore cum debitis!</p>
+                        </div>
+                    </div>
+                    <div class="col l4 s12">
+                        <div class="center">
+                        <i class="medium material-icons">person</i>
+                        <h5 class="header teal-text text-lighten-2">Personalized</h5>
+                        <p class="light-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam sequi perferendis quia laborum nemo natus, veritatis necessitatibus rerum illo excepturi eos quis neque voluptatum esse? Aut harum ullam magni sunt.</p>
+                        </div>
+                    </div>
+                    <div class="col l4 s12">
+                        <div class="center">
+                        <i class="medium material-icons">favorite</i>
+                        <h5 class="header teal-text text-lighten-1">Friendly</h5>
+                        <p class="light-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Assumenda ex quas ab fugiat! Facilis amet esse ipsum aspernatur ratione deserunt facere id earum accusantium quasi. Nobis sapiente molestias adipisci blanditiis!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="parallax-container" id="divider-parallax">
+            <div class="parallax">
+                <img src="img/background.jpg">
+            </div>
+        </div>
+
+        <div class="white">
+            <div class="container">
+                <!-- Gallery -->
+                <h3 class="header center" id="gallery">Gallery</h3>
+                <p class="flow-text center">Here are some photos of events and stuff.</p>
+                <div class="slider">
+                    <ul class="slides">
+                        {{ range .Slides }}<li>
+                            <img src="{{ .Image }}">
+                            <div class="caption left-align">
+                                <h3>{{ .Title }}</h3>
+                                <h5 class="light grey-text text-lighten-3">{{ .Description }}</h5>
+                            </div>
+                        </li>
+                        {{ end }}
+                    </ul>
+                </div>
+                <br>
+            </div>
+        </div>
+        <div class="parallax-container" id="divider-parallax">
+            <div class="parallax">
+                <img src="img/background.jpg">
+            </div>
+        </div>
+        <div class="white">
+            <div class="container">
+                <!-- Menu -->
+                <h3 class="header center" id="menu">Menu</h3>
+                <p class="flow-text center">See what we have to offer for when you visit us.</p>
+                <table class="bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Menu }}<tr>
+                            <td>{{ .Name }}</td>
+                            <td>{{ .Description }}</td>
+                            <td>{{ .Price }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+                <br>
+            </div>
+        </div>
+        <div class="parallax-container" id="divider-parallax">
+            <div class="parallax">
+                <img src="img/background.jpg">
+            </div>
+        </div>
+        <div class="white">
+            <div class="container" id="contact-us">
+                <!-- Contact Us -->
+                <h3 class="header center">Contact Us</h3>
+                <p class="flow-text center">Want to send us some feedback or arrange a special event with us? Just send us a message here.</p>
+                <div class="row">
+                    <form class="col s12">
+                        <div class="row">
+                            <div class="input-field col m6 s12">
+                                <i class="material-icons prefix">account_circle</i>
+                                <input id="contact-us-name" type="text" class="validate name" data-length="64" maxlength="64" required>
+                                <label for="contact-us-name">Name</label>
+                            </div>
+                            <div class="input-field col m6 s12">
+                                <i class="material-icons prefix">mail</i>
+                                <input id="contact-us-email" type="email" class="validate email" data-length="128" maxlength="128" required>
+                                <label for="contact-us-email">Email</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">mode_edit</i>
+                                <textarea id="contact-us-message" class="materialize-textarea validate message" data-length="512" maxlength="512" required></textarea>
+                                <label for="contact-us-message">Message</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <div class="g-recaptcha" data-sitekey="6LdWL0sUAAAAAA5GNHKyGFPs-LSo5H0Z3_xwESyW"></div>
+                            </div>
+                            <div class="col s12 center">
+                                <a class="waves-effect waves-light btn" id="contact-us-button">Submit</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <footer class="page-footer">
+            <div class="container">
+                <div class="row">
+                    <div class="col l6 s12">
+                        <h5 class="white-text">Want a website?</h5>
+                        <p class="grey-text text-lighten-4">Contact Froogo on <a class="pink-text" href="https://froogo.co.uk/">froogo.co.uk</a>.</p>
+                    </div>
+                    <div class="col l4 offset-l2 s12">
+                        <h5 class="white-text">Links</h5>
+                        <ul>
+                            <li><a class="grey-text text-lighten-3" href="/login">Admin</a></li>
+                            <li><a class="grey-text text-lighten-3" href="https://github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/">Source code</a></li>
+                            <li><a class="grey-text text-lighten-3" href="https://froogo.co.uk/">Developer - Froogo</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-copyright">
+                <div class="container">
+                    © 2018 Froogo, All rights reserved.
+                    <a class="grey-text text-lighten-4 right" target="_blank" href="https://froogo.co.uk/">Developed by Froogo</a>
+                </div>
+            </div>
+        </footer>
+
+        <!-- Import JavaScript -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src='https://www.google.com/recaptcha/api.js'></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+        <script type="text/javascript" src="/js/main.js?v=8"></script>
+    </body>
+</html>

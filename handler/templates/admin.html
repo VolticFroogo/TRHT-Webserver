@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Title -->
+        <title>Admin | TRHT</title>
+
+        <!-- Import CSS -->
+        <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    </head>
+
+    <body>
+        <nav class="teal lighten-2">
+            <div class="nav-wrapper container">
+                <span class="hide-on-med-and-up">
+                    <a href="/" class="brand-logo">Admin</a>
+                </span>
+                <span class="hide-on-small-only">
+                    <a href="/" class="brand-logo">TRHTearoom Admin</a>
+                </span>
+                <a href="#" data-activates="side-bar" class="button-collapse"><i class="material-icons">menu</i></a>
+                <ul class="right hide-on-med-and-down">
+                    <li><a>Welcome {{ .User.Fname }}</a></li>
+                    <li><a href="/">Homepage</a></li>
+                    <li><a onclick="document.getElementById('logout').submit();">Logout</a></li>
+                </ul>
+                <!-- Mobile Sidebar for Navbar -->
+                <ul class="side-nav" id="side-bar">
+                    <li><a>The Rabbit Hole Tearoom Admin</a></li>
+                    <li><a>Welcome {{ .User.Fname }}</a></li>
+                    <li><div class="divider"></div></li>
+                    <li><a class="subheader">Actions</a></li>
+                    <li><a onclick="document.getElementById('logout').submit();">Logout</a></li>
+                    <li><div class="divider"></div></li>
+                    <li><a class="subheader">Pages</a></li>
+                    <li><a href="/">Homepage</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container">
+            <br>
+            <div class="row">
+                <div class="col s12">
+                    <ul class="tabs tabs-fixed-width">
+                        <li class="tab col"><a class="active" href="#gallery">Gallery</a></li>
+                        <li class="tab col"><a href="#menu">Menu</a></li>
+                        <li class="tab col"><a href="#contact-us">Contact Us</a></li>
+                        <li class="tab col"><a href="#users">Users</a></li>
+                    </ul>
+                </div>
+                <div id="gallery" class="col s12">I am a gallery.</div>
+                <div id="menu" class="col s12">
+                    <ul class="collapsible popout" data-collapsible="accordion">
+                        {{ range .Menu }}<li id="menu-item-{{ .ID }}">
+                            <div class="collapsible-header menu-item-header">{{ .Name }}</div>
+                            <div class="collapsible-body"><span>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Name }}" id="menu-item-name-{{ .ID }}" class="menu-item-name" type="text">
+                                        <label for="menu-item-name-{{ .ID }}">Name</label>
+                                    </div>
+                                    <div class="input-field col s12 hide-on-small-only">
+                                        <input value="{{ .Description }}" id="menu-item-description-regular-{{ .ID }}" class="menu-item-description-regular" type="text">
+                                        <label for="menu-item-description-regular-{{ .ID }}">Description</label>
+                                    </div>
+                                    <div class="input-field col s12 hide-on-med-and-up">
+                                        <textarea id="menu-item-description-large-{{ .ID }}" class="materialize-textarea menu-item-description-large">{{ .Description }}</textarea>
+                                        <label for="menu-item-description-large-{{ .ID }}">Description</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Price }}" id="menu-item-price-{{ .ID }}" class="menu-item-price" type="text">
+                                        <label for="menu-item-price-{{ .ID }}">Price</label>
+                                    </div>
+                                    <div class="input-field col">
+                                        <a class="btn waves-effect waves-light menu-item-new" onclick="MenuUpdate({{ .ID }});">Submit<i class="material-icons right">send</i></a>
+                                        <a class="btn waves-effect waves-light red menu-item-delete" onclick="MenuDelete({{ .ID }});">Delete<i class="material-icons right">delete</i></a>
+                                    </div>
+                                </div>
+                            </span></div>
+                        </li>
+                        {{ end }}
+                    </ul>
+                    <div class="fixed-action-btn">
+                        <a class="btn-floating btn-large teal tooltipped" id="menu-add" data-position="left" data-delay="50" data-tooltip="Create a new menu item.">
+                            <i class="large material-icons">add</i>
+                        </a>
+                    </div>
+                </div>
+                <div id="contact-us" class="col s12">
+                    <ul class="collapsible popout" data-collapsible="accordion">
+                        {{ range .ContactMessages }}<li id="contact-message-{{ .ID }}">
+                            <div class="collapsible-header">Message from {{ .Name }}</div>
+                            <div class="collapsible-body">
+                                <div class="flow-text">Name: {{ .Name }}</div>
+                                <div class="flow-text">Email: <a href="mailto:{{ .Email }}">{{ .Email }}</a></div>
+                                <br>
+                                <div class="flow-text">Message: {{ .Message }}</div>
+                                <br>
+                                <a class="btn waves-effect waves-light red menu-item-delete" onclick="ContactDelete({{ .ID }});">Delete<i class="material-icons right">delete</i></a>
+                            </div>
+                        </li>
+                        {{ end }}
+                    </ul>
+                </div>
+                <div id="users" class="col s12">I am users.</div>
+            </div>
+        </div>
+
+        <!-- Logout form for Navbar -->
+        <form hidden name="logout" action="/logout" method="POST" id="logout">
+            <input hidden name="csrfSecret" value="{{ .CsrfSecret }}"/>
+        </form>
+
+        <!-- Import JavaScript -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+        <script>var CsrfSecret = "{{ .CsrfSecret }}";</script> <!-- Set CSRF Secret in JavaScript -->
+        <script type="text/javascript" src="/js/admin.js?v3"></script>
+    </body>
+</html>

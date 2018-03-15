@@ -1,0 +1,25 @@
+body {
+  margin: 0;
+  background: #a1c4fd; /* Fallback for old browsers */
+  background: -webkit-linear-gradient(right, #a1c4fd, #c2e9fb);
+  background: -o-linear-gradient(right, #a1c4fd, #c2e9fb);
+  background: linear-gradient(to left, #a1c4fd, #c2e9fb);
+  font-family: "Roboto", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 1px;
+}
+
+canvas {
+  display: block;
+  vertical-align: bottom;
+}
+
+#login {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -moz-transform: translateX(-50%) translateY(-50%);
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+}

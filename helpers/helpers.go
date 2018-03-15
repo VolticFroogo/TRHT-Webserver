@@ -1,0 +1,41 @@
+package helpers
+
+import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"log"
+	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
+func generateRandomBytes(size int) ([]byte, error) {
+	bytes := make([]byte, size)
+	_, err := rand.Read(bytes)
+	// Note that err == nil only if we read len(bytes) bytes.
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes, nil
+}
+
+// GenerateRandomString returns a random string with the size specified.
+func GenerateRandomString(size int) (string, error) {
+	b, err := generateRandomBytes(size)
+	return base64.URLEncoding.EncodeToString(b), err
+}
+
+// CheckPassword Checks a password against a hash.
+func CheckPassword(password, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+	return err == nil
+}
+
+// ThrowErr throws an HTTP error and logs it to the server.
+func ThrowErr(w http.ResponseWriter, errName string, err error) {
+	log.Printf("%v: %v\n", errName, err)
+	fmt.Fprintf(w, "%v: %v\n", errName, err)
+	w.WriteHeader(http.StatusInternalServerError)
+}
