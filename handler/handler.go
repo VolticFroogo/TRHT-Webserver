@@ -5,6 +5,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/db"
@@ -18,7 +19,7 @@ import (
 )
 
 var (
-	captchaSecret = "6LdWL0sUAAAAANLzOSIGEvPrSpesw2ulpDluB1H3"
+	captchaSecret = os.Getenv("CAPTCHA_SECRET") // Captcha secret changed since I doxed myself. :P
 	captcha       = recaptcha.New(captchaSecret)
 )
 
@@ -41,6 +42,7 @@ type responseWithID struct {
 
 // Start the server by handling the web server.
 func Start() {
+	log.Printf("Captcha: %v", captchaSecret)
 	r := mux.NewRouter()
 
 	r.Handle("/", http.HandlerFunc(index))

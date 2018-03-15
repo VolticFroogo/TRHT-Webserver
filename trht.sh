@@ -1,2 +1,2 @@
 #!/bin/bash
-sudo ./The-Rabbit-Hole-Tearoom
+sudo CAPTCHA_SECRET=$CAPTCHA_SECRET_TRHT ./The-Rabbit-Hole-Tearoom
