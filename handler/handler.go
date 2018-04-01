@@ -3,16 +3,19 @@ package handler
 import (
 	"encoding/json"
 	"html/template"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/db"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/helpers"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/middleware"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/middleware/myJWT"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/models"
+	"github.com/VolticFroogo/TRHT-Webserver/db"
+	"github.com/VolticFroogo/TRHT-Webserver/helpers"
+	"github.com/VolticFroogo/TRHT-Webserver/middleware"
+	"github.com/VolticFroogo/TRHT-Webserver/middleware/myJWT"
+	"github.com/VolticFroogo/TRHT-Webserver/models"
 	"github.com/go-recaptcha/recaptcha"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -40,9 +43,14 @@ type responseWithID struct {
 	ID      int  `json:"id"`
 }
 
+type slideData struct {
+	ID                 int
+	Title, Description string
+	CImage             bool // Note: cImage is short for changeImage
+}
+
 // Start the server by handling the web server.
 func Start() {
-	log.Printf("Captcha: %v", captchaSecret)
 	r := mux.NewRouter()
 
 	r.Handle("/", http.HandlerFunc(index))
@@ -59,8 +67,18 @@ func Start() {
 		negroni.Wrap(http.HandlerFunc(admin)),
 	))
 
-	r.Handle("/admin/menu", http.HandlerFunc(menuUpdate))
+	r.Handle("/admin/slide/new", negroni.New(
+		negroni.HandlerFunc(middleware.Form),
+		negroni.Wrap(http.HandlerFunc(slideNew)),
+	))
+	r.Handle("/admin/slide/update", negroni.New(
+		negroni.HandlerFunc(middleware.Form),
+		negroni.Wrap(http.HandlerFunc(slideUpdate)),
+	))
+	r.Handle("/admin/slide/delete", http.HandlerFunc(slideDelete))
+
 	r.Handle("/admin/menu/new", http.HandlerFunc(menuNew))
+	r.Handle("/admin/menu/update", http.HandlerFunc(menuUpdate))
 	r.Handle("/admin/menu/delete", http.HandlerFunc(menuDelete))
 
 	r.Handle("/admin/contact-us/delete", http.HandlerFunc(contactDelete))
@@ -197,6 +215,166 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		helpers.ThrowErr(w, "JSON encoding error", err)
 	}
+}
+
+func slideNew(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024) // 10MB
+
+	data := slideData{
+		Title:       r.FormValue("title"),
+		Description: r.FormValue("description"),
+	}
+
+	file, handle, err := r.FormFile("imageFile")
+	if err != nil {
+		helpers.ThrowErr(w, "Decoding image error", err)
+		return
+	}
+	defer file.Close()
+
+	imageID, err := helpers.GenerateRandomString(32)
+	if err != nil {
+		helpers.ThrowErr(w, "Generating imageID error", err)
+		return
+	}
+
+	fileLocation := "/img/slide/" + imageID + filepath.Ext(handle.Filename)
+	err = saveFile(w, file, fileLocation)
+	if err != nil {
+		helpers.ThrowErr(w, "Saving image error", err)
+		return
+	}
+
+	id, err := db.NewSlide(data.Title, data.Description, fileLocation)
+	if err != nil {
+		helpers.ThrowErr(w, "Editing slide error", err)
+		return
+	}
+
+	res := responseWithID{
+		Success: true,
+		ID:      id,
+	}
+	resEnc, err := json.Marshal(res) // Encode response into JSON.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+		return
+	}
+	w.Write(resEnc) // Write JSON data to response writer.
+}
+
+func slideUpdate(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024) // 10MB
+
+	id, err := strconv.Atoi(r.FormValue("id"))
+	if err != nil {
+		helpers.ThrowErr(w, "Converting ID string to int error", err)
+		return
+	}
+
+	cImage, err := strconv.ParseBool(r.FormValue("cImage"))
+	if err != nil {
+		helpers.ThrowErr(w, "Converting cImage string to bool error", err)
+		return
+	}
+
+	data := slideData{
+		ID:          id,
+		Title:       r.FormValue("title"),
+		Description: r.FormValue("description"),
+		CImage:      cImage,
+	}
+
+	if data.CImage {
+		file, handle, err := r.FormFile("imageFile")
+		if err != nil {
+			helpers.ThrowErr(w, "Decoding image error", err)
+			return
+		}
+		defer file.Close()
+
+		imageID, err := helpers.GenerateRandomString(32)
+		if err != nil {
+			helpers.ThrowErr(w, "Generating imageID error", err)
+			return
+		}
+
+		fileLocation := "/img/slide/" + imageID + filepath.Ext(handle.Filename)
+		err = saveFile(w, file, fileLocation)
+		if err != nil {
+			helpers.ThrowErr(w, "Saving image error", err)
+			return
+		}
+
+		oldFileLocation, err := db.EditSlide(data.ID, data.Title, data.Description, fileLocation)
+		if err != nil {
+			helpers.ThrowErr(w, "Editing slide error", err)
+			return
+		}
+
+		err = deleteFile(oldFileLocation)
+		if err != nil {
+			helpers.ThrowErr(w, "Deleting oldImage error", err)
+			return
+		}
+	} else {
+		err := db.EditSlideNoFile(data.ID, data.Title, data.Description)
+		if err != nil {
+			helpers.ThrowErr(w, "Editing slide error", err)
+			return
+		}
+	}
+
+	err = successResponse(true, w)
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+	}
+}
+
+func slideDelete(w http.ResponseWriter, r *http.Request) {
+	var data models.SlideEdit                    // Create struct to store data.
+	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON decoding error", err)
+		return
+	}
+
+	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
+		// Failed middleware (invalid credentials)
+		return
+	}
+
+	image, err := db.DeleteSlide(data.ID)
+	if err != nil {
+		helpers.ThrowErr(w, "Deleting menu item error", err)
+		return
+	}
+
+	err = deleteFile(image)
+	if err != nil {
+		helpers.ThrowErr(w, "Deleting image error", err)
+		return
+	}
+
+	err = successResponse(true, w)
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+	}
+}
+
+func deleteFile(fileLocation string) (err error) {
+	err = os.Remove("./static" + fileLocation)
+	return
+}
+
+func saveFile(w http.ResponseWriter, file multipart.File, saveLocation string) (err error) {
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		return
+	}
+
+	err = ioutil.WriteFile("./static"+saveLocation, data, 0666)
+	return
 }
 
 func menuUpdate(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,25 @@
+<li id="slide-' + SlideID + '">
+    <div class="collapsible-header slide-header">New Slide</div>
+    <div class="collapsible-body"><span>
+        <div class="row">
+            <!-- Hidden ID variable for the server to use -->
+            <input hidden value="' + SlideID + '" class="slide-id"/>
+            <div class="input-field col s12">
+                <input id="slide-title-' + SlideID + '" class="slide-title" type="text" name="title">
+                <label for="slide-title-' + SlideID + '">Title</label>
+            </div>
+            <div class="input-field col s12">
+                <input id="slide-description-' + SlideID + '" class="slide-description" type="text" name="description">
+                <label for="slide-description-' + SlideID + '">Description</label>
+            </div>
+            <div class="input-field col s12">
+                <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue(' + SlideID + ');">Add Image<i class="material-icons right">add_a_photo</i></a>
+                <input hidden class="slide-image" type="file">
+            </div>
+            <div class="input-field col">
+                <a class="btn waves-effect waves-light slide-new" onclick="SlideNew(' + SlideID + ');">Submit<i class="material-icons right">send</i></a>
+                <a class="btn waves-effect waves-light red slide-delete" onclick="SlideDeleteNew(' + SlideID + ');">Delete<i class="material-icons right">delete</i></a>
+            </div>
+        </div>
+    </span></div>
+</li>

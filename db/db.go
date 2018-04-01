@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"time"
 
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/db/dbCredentials"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/helpers"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/models"
+	"github.com/VolticFroogo/TRHT-Webserver/db/dbCredentials"
+	"github.com/VolticFroogo/TRHT-Webserver/helpers"
+	"github.com/VolticFroogo/TRHT-Webserver/models"
 	_ "github.com/go-sql-driver/mysql" // Necessary for connecting to MySQL.
 )
 
@@ -87,7 +87,7 @@ func jtiGarbageCollector(quit chan bool) {
 
 // GetUserFromID retrieves a user from the MySQL database.
 func GetUserFromID(uuid int) (user models.User, err error) {
-	rows, err := db.Query("SELECT email, password, fname, lname, create_time FROM users WHERE uuid = ?", uuid) // Query DB for id and password from username.
+	rows, err := db.Query("SELECT email, password, fname, lname, create_time FROM users WHERE uuid=?", uuid)
 	if err != nil {
 		return
 	}
@@ -107,7 +107,7 @@ func GetUserFromID(uuid int) (user models.User, err error) {
 
 // GetUserFromEmail retrieves a user's ID from the MySQL database.
 func GetUserFromEmail(email string) (user models.User, err error) {
-	rows, err := db.Query("SELECT uuid, password, fname, lname, create_time FROM users WHERE email = ?", email) // Query DB for id and password from username.
+	rows, err := db.Query("SELECT uuid, password, fname, lname, create_time FROM users WHERE email=?", email)
 	if err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func GetUserFromEmail(email string) (user models.User, err error) {
 
 // UpdateSlides updates the slides by querying the MySQL DataBase.
 func UpdateSlides() (err error) {
-	rows, err := db.Query("SELECT id, image, title, description FROM slides") // Query DB for id and password from username.
+	rows, err := db.Query("SELECT id, image, title, description FROM slides")
 	if err != nil {
 		return
 	}
@@ -151,7 +151,7 @@ func UpdateSlides() (err error) {
 
 // UpdateMenu updates the menu by querying the MySQL DataBase.
 func UpdateMenu() (err error) {
-	rows, err := db.Query("SELECT id, name, description, price FROM menu") // Query DB for id and password from username
+	rows, err := db.Query("SELECT id, name, description, price FROM menu")
 	if err != nil {
 		return
 	}
@@ -175,7 +175,7 @@ func UpdateMenu() (err error) {
 
 // UpdateContactMessages updates the messages by querying the MySQL DataBase.
 func UpdateContactMessages() (err error) {
-	rows, err := db.Query("SELECT id, name, email, message FROM contact") // Query DB for id and password from username
+	rows, err := db.Query("SELECT id, name, email, message FROM contact")
 	if err != nil {
 		return
 	}
@@ -197,6 +197,89 @@ func UpdateContactMessages() (err error) {
 	return
 }
 
+// NewSlide creates a new menu item.
+func NewSlide(Title, Description, Image string) (id int, err error) {
+	_, err = db.Exec("INSERT INTO slides (title, description, image) VALUES (?, ?, ?)", Title, Description, Image)
+	if err != nil {
+		return
+	}
+
+	rows, err := db.Query("SELECT id FROM slides WHERE title=? AND description=? AND image=? ORDER BY id DESC", Title, Description, Image)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(&id)
+	if err != nil {
+		return
+	}
+
+	err = UpdateSlides()
+	return
+}
+
+// EditSlide updates a slide.
+func EditSlide(ID int, Title, Description, Image string) (oldImage string, err error) {
+	rows, err := db.Query("SELECT image FROM slides WHERE id=?", ID)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(&oldImage)
+	if err != nil {
+		return
+	}
+
+	_, err = db.Exec("UPDATE slides SET title=?, description=?, image=? WHERE id=?", Title, Description, Image, ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateSlides()
+	return
+}
+
+// EditSlideNoFile updates a slide without changing the file location.
+func EditSlideNoFile(ID int, Title, Description string) (err error) {
+	_, err = db.Exec("UPDATE slides SET title=?, description=? WHERE id=?", Title, Description, ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateSlides()
+	return
+}
+
+// DeleteSlide deletes a slide.
+func DeleteSlide(ID int) (image string, err error) {
+	rows, err := db.Query("SELECT image FROM slides WHERE id=?", ID)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(&image)
+	if err != nil {
+		return
+	}
+
+	_, err = db.Exec("DELETE FROM slides WHERE id=?", ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateSlides()
+	return
+}
+
 // EditMenuItem update's a menu item.
 func EditMenuItem(ID int, Name, Description, Price string) (err error) {
 	_, err = db.Exec("UPDATE menu SET name=?, description=?, price=? WHERE id=?", Name, Description, Price, ID)
@@ -215,7 +298,7 @@ func NewMenuItem(Name, Description, Price string) (id int, err error) {
 		return
 	}
 
-	rows, err := db.Query("SELECT id FROM menu WHERE name = ? AND description = ? AND price = ?", Name, Description, Price) // Query DB for id and password from username
+	rows, err := db.Query("SELECT id FROM menu WHERE name=? AND description=? AND price=? ORDER BY id DESC", Name, Description, Price)
 	if err != nil {
 		return
 	}

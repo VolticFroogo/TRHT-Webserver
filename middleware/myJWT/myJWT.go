@@ -6,9 +6,9 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/db"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/helpers"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/models"
+	"github.com/VolticFroogo/TRHT-Webserver/db"
+	"github.com/VolticFroogo/TRHT-Webserver/helpers"
+	"github.com/VolticFroogo/TRHT-Webserver/models"
 	"github.com/dgrijalva/jwt-go"
 )
 

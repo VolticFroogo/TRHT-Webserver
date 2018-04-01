@@ -55,7 +55,41 @@
                         <li class="tab col"><a href="#users">Users</a></li>
                     </ul>
                 </div>
-                <div id="gallery" class="col s12">I am a gallery.</div>
+                <div id="gallery" class="col s12">
+                    <ul class="collapsible popout" data-collapsible="accordion">
+                        {{ range .Slides }}<li id="slide-{{ .ID }}">
+                            <div class="collapsible-header slide-header">{{ .Title }}</div>
+                            <div class="collapsible-body"><span>
+                                <div class="row">
+                                    <!-- Hidden ID variable for the server to use -->
+                                    <input hidden value="{{ .ID }}" class="slide-id"/>
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Title }}" id="slide-title-{{ .ID }}" class="slide-title" type="text" name="title">
+                                        <label for="slide-title-{{ .ID }}">Title</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Description }}" id="slide-description-{{ .ID }}" class="slide-description" type="text" name="description">
+                                        <label for="slide-description-{{ .ID }}">Description</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue({{ .ID }});">Add Image<i class="material-icons right">add_a_photo</i></a>
+                                        <input hidden class="slide-image" type="file">
+                                    </div>
+                                    <div class="input-field col">
+                                        <a class="btn waves-effect waves-light slide-new" onclick="SlideUpdate({{ .ID }});">Submit<i class="material-icons right">send</i></a>
+                                        <a class="btn waves-effect waves-light red slide-delete" onclick="SlideDelete({{ .ID }});">Delete<i class="material-icons right">delete</i></a>
+                                    </div>
+                                </div>
+                            </span></div>
+                        </li>
+                        {{ end }}
+                    </ul>
+                    <div class="fixed-action-btn">
+                        <a class="btn-floating btn-large teal tooltipped" id="slide-add" data-position="left" data-delay="50" data-tooltip="Create a new slide.">
+                            <i class="large material-icons">add</i>
+                        </a>
+                    </div>
+                </div>
                 <div id="menu" class="col s12">
                     <ul class="collapsible popout" data-collapsible="accordion">
                         {{ range .Menu }}<li id="menu-item-{{ .ID }}">
@@ -63,19 +97,19 @@
                             <div class="collapsible-body"><span>
                                 <div class="row">
                                     <div class="input-field col s12">
-                                        <input value="{{ .Name }}" id="menu-item-name-{{ .ID }}" class="menu-item-name" type="text">
+                                        <input value="{{ .Name }}" id="menu-item-name-{{ .ID }}" class="menu-item-name" type="text" data-length="64" maxlength="64">
                                         <label for="menu-item-name-{{ .ID }}">Name</label>
                                     </div>
                                     <div class="input-field col s12 hide-on-small-only">
-                                        <input value="{{ .Description }}" id="menu-item-description-regular-{{ .ID }}" class="menu-item-description-regular" type="text">
+                                        <input value="{{ .Description }}" id="menu-item-description-regular-{{ .ID }}" class="menu-item-description-regular" type="text" data-length="256" maxlength="256">
                                         <label for="menu-item-description-regular-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12 hide-on-med-and-up">
-                                        <textarea id="menu-item-description-large-{{ .ID }}" class="materialize-textarea menu-item-description-large">{{ .Description }}</textarea>
+                                        <textarea id="menu-item-description-large-{{ .ID }}" class="materialize-textarea menu-item-description-large" data-length="256" maxlength="256">{{ .Description }}</textarea>
                                         <label for="menu-item-description-large-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Price }}" id="menu-item-price-{{ .ID }}" class="menu-item-price" type="text">
+                                        <input value="{{ .Price }}" id="menu-item-price-{{ .ID }}" class="menu-item-price" type="text" data-length="8" maxlength="8">
                                         <label for="menu-item-price-{{ .ID }}">Price</label>
                                     </div>
                                     <div class="input-field col">
@@ -122,6 +156,6 @@
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
         <script>var CsrfSecret = "{{ .CsrfSecret }}";</script> <!-- Set CSRF Secret in JavaScript -->
-        <script type="text/javascript" src="/js/admin.js?v3"></script>
+        <script type="text/javascript" src="/js/admin.js?v53"></script>
     </body>
 </html>

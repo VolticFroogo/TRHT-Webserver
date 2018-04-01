@@ -53,6 +53,12 @@ type ContactMessageEdit struct {
 	CsrfSecret string
 }
 
+// SlideEdit is the struct recieved by an admin when they delete a slide.
+type SlideEdit struct {
+	ID         int
+	CsrfSecret string
+}
+
 // User is a user retrieved from a Database.
 type User struct {
 	UUID                                      int

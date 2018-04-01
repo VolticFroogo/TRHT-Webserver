@@ -3,9 +3,9 @@ package main
 import (
 	"log"
 
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/db"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/handler"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/middleware/myJWT"
+	"github.com/VolticFroogo/TRHT-Webserver/db"
+	"github.com/VolticFroogo/TRHT-Webserver/handler"
+	"github.com/VolticFroogo/TRHT-Webserver/middleware/myJWT"
 )
 
 func main() {

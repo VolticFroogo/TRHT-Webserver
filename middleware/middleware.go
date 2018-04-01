@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/helpers"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/middleware/myJWT"
-	"github.com/VolticFroogo/The-Rabbit-Hole-Tearoom/models"
+	"github.com/VolticFroogo/TRHT-Webserver/helpers"
+	"github.com/VolticFroogo/TRHT-Webserver/middleware/myJWT"
+	"github.com/VolticFroogo/TRHT-Webserver/models"
 )
 
 // Admin handles authentication for admin pages.

@@ -17,7 +17,7 @@ function MenuUpdate(ID) {
 
     $.ajax({
         url: "/admin/menu",
-        type: "post",
+        type: "POST",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({
             CsrfSecret: CsrfSecret,
@@ -50,7 +50,7 @@ function MenuNew(ID) {
 
     $.ajax({
         url: "/admin/menu/new",
-        type: "post",
+        type: "POST",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({
             CsrfSecret: CsrfSecret,
@@ -79,7 +79,7 @@ function MenuDelete(ID) {
 
     $.ajax({
         url: "/admin/menu/delete",
-        type: "post",
+        type: "POST",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({
             CsrfSecret: CsrfSecret,
@@ -103,11 +103,11 @@ function MenuDeleteNew(ID) {
     Materialize.toast('Successfully deleted item!', 4000);
 }
 
-var ID = 1000000;
+var MenuID = 1000000;
 $("#menu-add").click(function() {
-    ID++;
-    $("#menu ul").append('<li id="menu-item-' + ID + '"> <div class="collapsible-header menu-item-header">New Item</div><div class="collapsible-body"><span> <div class="row"> <div class="input-field col s12"> <input id="menu-item-name-' + ID + '" class="menu-item-name" type="text"> <label for="menu-item-name-' + ID + '">Name</label> </div><div class="input-field col s12 hide-on-small-only"> <input id="menu-item-description-regular-' + ID + '" class="menu-item-description-regular" type="text"> <label for="menu-item-description-regular-' + ID + '">Description</label> </div><div class="input-field col s12 hide-on-med-and-up"> <textarea id="menu-item-description-large-' + ID + '" class="materialize-textarea menu-item-description-large"></textarea> <label for="menu-item-description-large-' + ID + '">Description</label> </div><div class="input-field col s12"> <input id="menu-item-price-' + ID + '" class="menu-item-price" type="text"> <label for="menu-item-price-' + ID + '">Price</label> </div><div class="input-field col"> <a class="btn waves-effect waves-light menu-item-new" onclick="MenuNew(' + ID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red menu-item-delete" onclick="MenuDeleteNew(' + ID + ');">Delete<i class="material-icons right">delete</i></a> </div></div></span></div></li>');
+    $("#menu ul").append('<li id="menu-item-' + MenuID + '"><div class="collapsible-header menu-item-header">New Item</div><div class="collapsible-body"><span><div class="row"><div class="input-field col s12"> <input id="menu-item-name-' + MenuID + '" class="menu-item-name" type="text"> <label for="menu-item-name-' + MenuID + '">Name</label></div><div class="input-field col s12 hide-on-small-only"> <input id="menu-item-description-regular-' + MenuID + '" class="menu-item-description-regular" type="text"> <label for="menu-item-description-regular-' + MenuID + '">Description</label></div><div class="input-field col s12 hide-on-med-and-up"><textarea id="menu-item-description-large-' + MenuID + '" class="materialize-textarea menu-item-description-large"></textarea><label for="menu-item-description-large-' + MenuID + '">Description</label></div><div class="input-field col s12"> <input id="menu-item-price-' + MenuID + '" class="menu-item-price" type="text"> <label for="menu-item-price-' + MenuID + '">Price</label></div><div class="input-field col"> <a class="btn waves-effect waves-light menu-item-new" onclick="MenuNew(' + MenuID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red menu-item-delete" onclick="MenuDeleteNew(' + MenuID + ');">Delete<i class="material-icons right">delete</i></a></div></div> </span></div></li>');
     $('.collapsible').collapsible('open', $('#menu ul li').length - 1);
+    MenuID++;
 });
 
 function ContactDelete(ID) {
@@ -117,7 +117,7 @@ function ContactDelete(ID) {
 
     $.ajax({
         url: "/admin/contact-us/delete",
-        type: "post",
+        type: "POST",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({
             CsrfSecret: CsrfSecret,
@@ -132,4 +132,117 @@ function ContactDelete(ID) {
             }
         }
     });
+}
+
+function SlideNew(ID) {
+    Materialize.toast('Sending new slide request!', 4000);
+    var slide = "#slide-" + ID;
+    var formData = new FormData();
+
+    if (typeof $(slide + " .slide-image")[0].files[0] === 'undefined') {
+        Materialize.Toast.removeAll(); // Clear all other toasts.
+        Materialize.toast('You need to select an image to add a new slide.', 4000);
+        return;
+    }
+
+    formData.append("title", $(slide + " .slide-title").val());
+    formData.append("description", $(slide + " .slide-description").val());
+    formData.append("imageFile", $(slide + " .slide-image")[0].files[0], $(slide + " .slide-image")[0].files[0].name);
+    formData.append("csrfSecret", CsrfSecret);
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/slide/new",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function(rRaw) {
+            var r = JSON.parse(rRaw);
+            if (r.success) {
+                $(slide + " .slide-new").attr("onclick", "SlideUpdate(" + r.id + ");");
+                $(slide + " .slide-delete").attr("onclick", "SlideDelete(" + r.id + ");");
+                $(slide + " .slide-header").text($(slide + " .slide-title").val());
+                $(slide).attr("id", "slide-" + r.id);
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully added new slide!', 4000);
+            }
+        }
+    });
+}
+
+function SlideUpdate(ID) {
+    Materialize.toast('Sending update slide request!', 4000);
+    var slide = "#slide-" + ID;
+    var formData = new FormData();
+
+    formData.append("id", $(slide + " .slide-id").val());
+    formData.append("title", $(slide + " .slide-title").val());
+    formData.append("description", $(slide + " .slide-description").val());
+    if (typeof $(slide + " .slide-image")[0].files[0] !== 'undefined') {
+        formData.append("imageFile", $(slide + " .slide-image")[0].files[0], $(slide + " .slide-image")[0].files[0].name);
+        formData.append("cImage", "true"); // cImage is short for changeImage and dictates whether the server will update the image we send or not.
+    } else {
+        formData.append("cImage", "false"); // cImage is short for changeImage and dictates whether the server will update the image we send or not.
+    }
+    formData.append("csrfSecret", CsrfSecret);
+
+    $.ajax({
+        type: "POST",
+        url: "/admin/slide/update",
+        data: formData,
+        cache: false,
+        contentType: false,
+        processData: false,
+        success: function(rRaw) {
+            var r = JSON.parse(rRaw);
+            if (r.success) {
+                $(slide + " .slide-header").text($(slide + " .slide-title").val());
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully updated slide!', 4000);
+            }
+        }
+    });
+}
+
+function SlideDelete(ID) {
+    Materialize.toast('Sending delete request!', 4000);
+
+    var slide = "#slide-" + ID;
+
+    $.ajax({
+        url: "/admin/slide/delete",
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            CsrfSecret: CsrfSecret,
+            ID: ID
+        }),
+        dataType: "json",
+        success: function(r) {
+            if (r.success) {
+                $(slide).remove();
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully deleted item!', 4000);
+            }
+        }
+    });
+}
+
+function SlideDeleteNew(ID) {
+    var slide = "#slide-" + ID;
+
+    $(slide).remove();
+    Materialize.toast('Successfully deleted item!', 4000);
+}
+
+var SlideID = 1000000;
+$("#slide-add").click(function() {
+    $("#gallery ul").append('<li id="slide-' + SlideID + '"><div class="collapsible-header slide-header">New Slide</div><div class="collapsible-body"><span><div class="row"> <input hidden value="' + SlideID + '" class="slide-id"/><div class="input-field col s12"> <input id="slide-title-' + SlideID + '" class="slide-title" type="text" name="title"> <label for="slide-title-' + SlideID + '">Title</label></div><div class="input-field col s12"> <input id="slide-description-' + SlideID + '" class="slide-description" type="text" name="description"> <label for="slide-description-' + SlideID + '">Description</label></div><div class="input-field col s12"> <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue(' + SlideID + ');">Add Image<i class="material-icons right">add_a_photo</i></a> <input hidden class="slide-image" type="file"></div><div class="input-field col"> <a class="btn waves-effect waves-light slide-new" onclick="SlideNew(' + SlideID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red slide-delete" onclick="SlideDeleteNew(' + SlideID + ');">Delete<i class="material-icons right">delete</i></a></div></div> </span></div></li>');
+    $('.collapsible').collapsible('open', $('#gallery ul li').length - 1);
+    SlideID++;
+});
+
+function ImageDialogue(ID) {
+    $("#slide-" + ID + " .slide-image").trigger('click');
 }
