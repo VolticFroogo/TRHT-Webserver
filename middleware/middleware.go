@@ -60,7 +60,7 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		}
 	}
 
-	RedirectToHome(w, r)
+	RedirectToLogin(w, r)
 }
 
 // Form is the function used to protect forms.
@@ -115,7 +115,7 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		}
 	}
 
-	RedirectToHome(w, r)
+	RedirectToLogin(w, r)
 }
 
 // AJAX is the function used to protect AJAX requests.
@@ -135,19 +135,20 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 	}
 
 	if authTokenString.Value != "" {
-		authTokenValid, _, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
+		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
+			context.Set(r, "priv", priv)
 			return true
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, _, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
+		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -162,6 +163,7 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
+			context.Set(r, "priv", priv)
 			return true
 		}
 	}
@@ -185,7 +187,7 @@ func WriteNewAuth(w http.ResponseWriter, r *http.Request, authTokenString, refre
 	return
 }
 
-// RedirectToHome redirects the client to home.
-func RedirectToHome(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+// RedirectToLogin redirects the client to the login.
+func RedirectToLogin(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 }

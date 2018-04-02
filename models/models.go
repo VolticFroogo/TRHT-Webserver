@@ -102,4 +102,5 @@ type TemplateVariables struct {
 // AJAXData is the struct used with the AJAX middleware.
 type AJAXData struct {
 	CsrfSecret string
+	Priv       int
 }

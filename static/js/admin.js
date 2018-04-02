@@ -33,6 +33,9 @@ function MenuUpdate(ID) {
                 $(menuItem + " .menu-item-header").text($(menuItem + " .menu-item-name").val());
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully updated!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -68,6 +71,9 @@ function MenuNew(ID) {
                 $(menuItem).attr("id", "menu-item-" + r.id);
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully added new item!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -92,6 +98,9 @@ function MenuDelete(ID) {
                 $(menuItem).remove();
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully deleted item!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -130,6 +139,9 @@ function ContactDelete(ID) {
                 $(contactMessage).remove();
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully deleted item!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -174,6 +186,9 @@ function SlideNew(ID) {
                 $(slide).attr("id", "slide-" + r.id);
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully added new slide!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -208,6 +223,9 @@ function SlideUpdate(ID) {
                 $(slide + " .slide-header").text($(slide + " .slide-title").val());
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully updated slide!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -232,6 +250,9 @@ function SlideDelete(ID) {
                 $(slide).remove();
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully deleted item!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -278,6 +299,9 @@ function UserNew(ID) {
                 $(user).attr("id", "user-" + r.id);
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully added new user!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -307,6 +331,9 @@ function UserUpdate(ID) {
                 $(user + " .user-header").text($(user + " .user-fname").val() + " " + $(user + " .user-lname").val());
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully updated!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });
@@ -331,6 +358,9 @@ function UserDelete(ID) {
                 $(user).remove();
                 Materialize.Toast.removeAll(); // Clear all other toasts.
                 Materialize.toast('Successfully deleted user!', 4000);
+            } else {
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('There was an error, please refresh the page.', 4000);
             }
         }
     });

@@ -154,8 +154,8 @@
                                         <label for="user-email-{{ .UUID }}">Email</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input id="user-password-{{ .UUID }}" class="user-password" type="password" data-length="64" maxlength="64">
-                                        <label for="user-password-{{ .UUID }}">Password (leave blank to stay the same)</label>
+                                        <input id="user-password-{{ .UUID }}" class="user-password tooltipped" data-position="top" data-delay="50" data-tooltip="You can leave the password blank to not change it." type="password" data-length="64" maxlength="64">
+                                        <label for="user-password-{{ .UUID }}">Password</label>
                                     </div>
                                     <div class="input-field col s12">
                                         <input value="{{ .Fname }}" id="user-fname-{{ .UUID }}" class="user-fname" type="text" data-length="16" maxlength="16">
@@ -199,6 +199,6 @@
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
         <script>var CsrfSecret = "{{ .CsrfSecret }}";</script> <!-- Set CSRF Secret in JavaScript -->
-        <script type="text/javascript" src="/js/admin.js?v82"></script>
+        <script type="text/javascript" src="/js/admin.js?v102"></script>
     </body>
 </html>
