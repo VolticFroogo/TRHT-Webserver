@@ -2,6 +2,7 @@ package db
 
 import (
 	"database/sql"
+	"log"
 	"time"
 
 	"github.com/VolticFroogo/TRHT-Webserver/db/dbCredentials"
@@ -15,8 +16,7 @@ import (
 */
 
 var (
-	refreshTokens map[string]int64
-	db            *sql.DB
+	db *sql.DB
 	// Slides is a struct for the slides.
 	Slides models.Slides
 	// Menu is a struct for the slides.
@@ -29,64 +29,109 @@ var (
 
 // InitDB initializes the Database.
 func InitDB() (err error) {
-	refreshTokens = make(map[string]int64)
 	db, err = sql.Open(dbCredentials.Type, dbCredentials.ConnString)
 	UpdateSlides()
 	UpdateMenu()
 	UpdateContactMessages()
 	UpdateUsers()
+	go jtiGarbageCollector()
 	return
-}
-
-/*
-	Non-MySQL DataBase related functions
-*/
-
-// StoreRefreshToken generates, stores and then returns a jti.
-func StoreRefreshToken() (jti string, err error) {
-	jti, err = helpers.GenerateRandomString(32)
-	if err != nil {
-		return jti, err
-	}
-
-	// Check to make sure our jti is unique.
-	for refreshTokens[jti] != 0 {
-		jti, err = helpers.GenerateRandomString(32)
-		if err != nil {
-			return jti, err
-		}
-	}
-
-	refreshTokens[jti] = time.Now().Add(models.RefreshTokenValidTime).Unix()
-
-	return jti, err
-}
-
-// CheckJti returns the validity of a jti.
-func CheckJti(jti string) (valid bool) {
-	if refreshTokens[jti] > time.Now().Unix() { // Check if token has expired.
-		return true // Token is valid.
-	}
-
-	delete(refreshTokens, jti)
-	return false // Token is invalid.
-}
-
-func jtiGarbageCollector(quit chan bool) {
-	ticker := time.NewTicker(5 * time.Minute) // Tick every five minutes.
-	for {
-		<-ticker.C                                     // Tick: run garbage collector.
-		var jti string                                 // Make a string to store a tokenID.
-		for refreshTokenRange := range refreshTokens { // Make a range of all tokens.
-			jti = refreshTokenRange // Set a tokenID from range.
-			CheckJti(jti)           // Check if token is valid if not it's deleted.
-		}
-	}
 }
 
 /*
 	MySQL DataBase related functions
 */
+
+// StoreRefreshToken generates, stores and then returns a JTI.
+func StoreRefreshToken() (jti models.JTI, err error) {
+	// No need to duplication check as the JTI takes input from time and are unique.
+	jti.JTI, err = helpers.GenerateRandomString(32)
+	if err != nil {
+		return
+	}
+
+	jti.Expiry = time.Now().Add(models.RefreshTokenValidTime).Unix()
+
+	_, err = db.Exec("INSERT INTO jti (jti, expiry) VALUES (?, ?)", jti.JTI, jti.Expiry)
+	if err != nil {
+		return
+	}
+
+	rows, err := db.Query("SELECT id FROM jti WHERE jti=? AND expiry=?", jti.JTI, jti.Expiry)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(&jti.ID) // Scan data from query.
+	return
+}
+
+// GetJTI takes a JTI string and returns the JTI struct.
+func GetJTI(jti string) (jtiStruct models.JTI, err error) {
+	rows, err := db.Query("SELECT id, expiry FROM jti WHERE jti=?", jti)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	jtiStruct.JTI = jti
+	rows.Next()
+	err = rows.Scan(&jtiStruct.ID, &jtiStruct.Expiry) // Scan data from query.
+	return
+}
+
+// CheckJTI returns the validity of a JTI.
+func CheckJTI(jti models.JTI) (valid bool, err error) {
+	if jti.Expiry > time.Now().Unix() { // Check if token has expired.
+		return true, nil // Token is valid.
+	}
+
+	_, err = db.Exec("DELETE FROM jti WHERE id=?", jti.ID)
+	if err != nil {
+		return false, err
+	}
+
+	return false, nil // Token is invalid.
+}
+
+// DeleteJTI deletes a JTI based on a jti key.
+func DeleteJTI(jti string) (err error) {
+	_, err = db.Exec("DELETE FROM jti WHERE jti=?", jti)
+	return
+}
+
+func jtiGarbageCollector() {
+	ticker := time.NewTicker(5 * time.Minute) // Tick every five minutes.
+	for {
+		<-ticker.C
+		rows, err := db.Query("SELECT id, jti, expiry FROM jti")
+		if err != nil {
+			log.Printf("Error querying JTI DB in JTI garbage collector: %v", err)
+			return
+		}
+
+		defer rows.Close()
+
+		jti := models.JTI{} // Create struct to store a JTI in.
+		for rows.Next() {
+			err = rows.Scan(&jti.ID, &jti.JTI, &jti.Expiry) // Scan data from query.
+			if err != nil {
+				log.Printf("Error scanning rows in JTI garbage collector: %v", err)
+				return
+			}
+
+			_, err := CheckJTI(jti)
+			if err != nil {
+				log.Printf("Error checking in JTI garbage collector: %v", err)
+				return
+			}
+		}
+	}
+}
 
 // GetUserFromID retrieves a user from the MySQL database.
 func GetUserFromID(uuid int) (user models.User, err error) {

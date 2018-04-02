@@ -102,5 +102,11 @@ type TemplateVariables struct {
 // AJAXData is the struct used with the AJAX middleware.
 type AJAXData struct {
 	CsrfSecret string
-	Priv       int
+}
+
+// JTI is the struct used for JTIs in the DB.
+type JTI struct {
+	ID     int
+	Expiry int64
+	JTI    string
 }

@@ -93,12 +93,27 @@ func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid 
 	}
 
 	if csrfSecret != tokenClaims.CSRF && checkCsrf {
-		return false, 0, fmt.Errorf("csrf token doesn't match jwt")
+		return false, models.PrivNone, fmt.Errorf("csrf token doesn't match jwt")
 	}
 
 	if refresh {
-		if !db.CheckJti(tokenClaims.StandardClaims.Id) {
-			return false, 0, nil
+		jti, err := db.GetJTI(tokenClaims.StandardClaims.Id)
+		if err != nil {
+			return false, models.PrivNone, fmt.Errorf("getting jti error")
+		}
+
+		jtiValid, err := db.CheckJTI(jti)
+		if err != nil {
+			return false, models.PrivNone, fmt.Errorf("checking jti error")
+		}
+
+		if jtiValid {
+			err = db.DeleteJTI(tokenClaims.StandardClaims.Id) // There will be a new JTI created in it's place by the middleware.
+			if err != nil {
+				return true, tokenClaims.Priv, err
+			}
+
+			return true, tokenClaims.Priv, nil
 		}
 	}
 
@@ -152,7 +167,7 @@ func createRefreshTokenString(uuid, csrfSecret string, priv int) (refreshTokenSt
 
 	refreshClaims := models.TokenClaims{
 		jwt.StandardClaims{
-			Id:        refreshJti,      // Token Id
+			Id:        refreshJti.JTI,  // Token Id
 			Subject:   uuid,            // Universally Unique Identifier
 			ExpiresAt: refreshTokenExp, // Expiry time in UNIX
 		},
