@@ -70,7 +70,7 @@ func RefreshTokens(oldRefreshTokenString string) (newAuthTokenString, newRefresh
 		return
 	}
 
-	return CreateNewTokens(oldTokenClaims.StandardClaims.Subject)
+	return CreateNewTokens(oldTokenClaims.StandardClaims.Subject, oldTokenClaims.Priv)
 }
 
 /*
@@ -78,7 +78,7 @@ func RefreshTokens(oldRefreshTokenString string) (newAuthTokenString, newRefresh
 */
 
 // CheckToken checks the validity of a token.
-func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid bool, err error) {
+func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid bool, priv int, err error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -93,16 +93,16 @@ func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid 
 	}
 
 	if csrfSecret != tokenClaims.CSRF && checkCsrf {
-		return false, fmt.Errorf("csrf token doesn't match jwt")
+		return false, 0, fmt.Errorf("csrf token doesn't match jwt")
 	}
 
 	if refresh {
 		if !db.CheckJti(tokenClaims.StandardClaims.Id) {
-			return false, nil
+			return false, 0, nil
 		}
 	}
 
-	return token.Valid, nil
+	return token.Valid, tokenClaims.Priv, nil
 }
 
 /*
@@ -110,7 +110,7 @@ func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid 
 */
 
 // CreateNewTokens creates an auth and refresh token.
-func CreateNewTokens(uuid string) (authTokenString, refreshTokenString, csrfSecret string, err error) {
+func CreateNewTokens(uuid string, priv int) (authTokenString, refreshTokenString, csrfSecret string, err error) {
 	// Generate the CSRF Secret
 	csrfSecret, err = generateCSRFSecret()
 	if err != nil {
@@ -118,13 +118,13 @@ func CreateNewTokens(uuid string) (authTokenString, refreshTokenString, csrfSecr
 	}
 
 	// Generate the refresh token
-	refreshTokenString, err = createRefreshTokenString(uuid, csrfSecret)
+	refreshTokenString, err = createRefreshTokenString(uuid, csrfSecret, priv)
 	if err != nil {
 		return
 	}
 
 	// Generate the auth token
-	authTokenString, err = createAuthTokenString(uuid, csrfSecret)
+	authTokenString, err = createAuthTokenString(uuid, csrfSecret, priv)
 
 	return
 }
@@ -143,7 +143,7 @@ func GetUUIDFromToken(tokenString string) (UUID string) {
 	return tokenClaims.StandardClaims.Subject
 }
 
-func createRefreshTokenString(uuid string, csrfSecret string) (refreshTokenString string, err error) {
+func createRefreshTokenString(uuid, csrfSecret string, priv int) (refreshTokenString string, err error) {
 	refreshTokenExp := time.Now().Add(models.RefreshTokenValidTime).Unix()
 	refreshJti, err := db.StoreRefreshToken()
 	if err != nil {
@@ -157,6 +157,7 @@ func createRefreshTokenString(uuid string, csrfSecret string) (refreshTokenStrin
 			ExpiresAt: refreshTokenExp, // Expiry time in UNIX
 		},
 		csrfSecret, // CSRF Secret to prevent CSRF
+		priv,
 	}
 
 	// Make a new unsigned token
@@ -167,7 +168,7 @@ func createRefreshTokenString(uuid string, csrfSecret string) (refreshTokenStrin
 	return
 }
 
-func createAuthTokenString(uuid string, csrfSecret string) (authTokenString string, err error) {
+func createAuthTokenString(uuid, csrfSecret string, priv int) (authTokenString string, err error) {
 	authTokenExp := time.Now().Add(models.AuthTokenValidTime).Unix()
 
 	authClaims := models.TokenClaims{
@@ -176,6 +177,7 @@ func createAuthTokenString(uuid string, csrfSecret string) (authTokenString stri
 			ExpiresAt: authTokenExp,
 		},
 		csrfSecret,
+		priv,
 	}
 
 	// Make a new unsigned token

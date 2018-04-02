@@ -27,7 +27,7 @@ var (
 )
 
 type loginData struct {
-	Email, Password string
+	Email, Password, Captcha string
 }
 
 type contactUsData struct {
@@ -82,6 +82,10 @@ func Start() {
 	r.Handle("/admin/menu/delete", http.HandlerFunc(menuDelete))
 
 	r.Handle("/admin/contact-us/delete", http.HandlerFunc(contactDelete))
+
+	r.Handle("/admin/user/new", http.HandlerFunc(userNew))
+	r.Handle("/admin/user/update", http.HandlerFunc(userUpdate))
+	r.Handle("/admin/user/delete", http.HandlerFunc(userDelete))
 
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
@@ -172,6 +176,7 @@ func admin(w http.ResponseWriter, r *http.Request) {
 		Slides:          db.Slides,
 		Menu:            db.Menu,
 		ContactMessages: db.ContactMessages,
+		Users:           db.Users,
 	}
 	err = t.Execute(w, variables) // Execute temmplate with variables
 	if err != nil {
@@ -193,6 +198,17 @@ func login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if credentials.Captcha == "" {
+		return // There is no captcha response.
+	}
+	captchaSuccess, err := captcha.Verify(credentials.Captcha, r.Header.Get("CF-Connecting-IP")) // Check the captcha.
+	if err != nil {
+		helpers.ThrowErr(w, "Recaptcha error", err)
+	}
+	if !captchaSuccess {
+		return // Unsuccessful captcha.
+	}
+
 	user, err := db.GetUserFromEmail(credentials.Email)
 	if err != nil {
 		helpers.ThrowErr(w, "Getting user from DB error", err)
@@ -202,16 +218,22 @@ func login(w http.ResponseWriter, r *http.Request) {
 	valid := helpers.CheckPassword(credentials.Password, user.Password)
 
 	if valid {
-		authTokenString, refreshTokenString, csrfSecret, err := myJWT.CreateNewTokens(strconv.Itoa(user.UUID))
+		authTokenString, refreshTokenString, csrfSecret, err := myJWT.CreateNewTokens(strconv.Itoa(user.UUID), user.Priv)
 		if err != nil {
 			helpers.ThrowErr(w, "Creating tokens error", err)
 			return
 		}
 
 		middleware.WriteNewAuth(w, r, authTokenString, refreshTokenString, csrfSecret)
+
+		err = successResponse(true, w)
+		if err != nil {
+			helpers.ThrowErr(w, "JSON encoding error", err)
+		}
+		return
 	}
 
-	err = successResponse(true, w)
+	err = successResponse(false, w)
 	if err != nil {
 		helpers.ThrowErr(w, "JSON encoding error", err)
 	}
@@ -474,6 +496,107 @@ func contactDelete(w http.ResponseWriter, r *http.Request) {
 	err = db.DeleteContactMessage(data.ID)
 	if err != nil {
 		helpers.ThrowErr(w, "Deleting contact message error", err)
+		return
+	}
+
+	err = successResponse(true, w)
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+	}
+}
+
+func userUpdate(w http.ResponseWriter, r *http.Request) {
+	var data models.UserEdit                     // Create struct to store data.
+	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON decoding error", err)
+		return
+	}
+
+	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
+		// Failed middleware (invalid credentials)
+		return
+	}
+
+	if data.Password == "" {
+		err = db.EditUserNoPassword(data.ID, data.Email, data.Fname, data.Lname, data.Privileges)
+		if err != nil {
+			helpers.ThrowErr(w, "Editing user (no password) error", err)
+			return
+		}
+	} else {
+		password, err := helpers.HashPassword(data.Password)
+		if err != nil {
+			helpers.ThrowErr(w, "Hashing password error", err)
+			return
+		}
+
+		err = db.EditUser(data.ID, data.Email, password, data.Fname, data.Lname, data.Privileges)
+		if err != nil {
+			helpers.ThrowErr(w, "Editing user error", err)
+			return
+		}
+	}
+
+	err = successResponse(true, w)
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+	}
+}
+
+func userNew(w http.ResponseWriter, r *http.Request) {
+	var data models.UserEdit                     // Create struct to store data.
+	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON decoding error", err)
+		return
+	}
+
+	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
+		// Failed middleware (invalid credentials)
+		return
+	}
+
+	password, err := helpers.HashPassword(data.Password)
+	if err != nil {
+		helpers.ThrowErr(w, "Hashing password error", err)
+		return
+	}
+
+	id, err := db.NewUser(data.Email, password, data.Fname, data.Lname, data.Privileges)
+	if err != nil {
+		helpers.ThrowErr(w, "Creating user error", err)
+		return
+	}
+
+	res := responseWithID{
+		Success: true,
+		ID:      id,
+	}
+	resEnc, err := json.Marshal(res) // Encode response into JSON.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON encoding error", err)
+		return
+	}
+	w.Write(resEnc) // Write JSON data to response writer.
+}
+
+func userDelete(w http.ResponseWriter, r *http.Request) {
+	var data models.UserEdit                     // Create struct to store data.
+	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
+	if err != nil {
+		helpers.ThrowErr(w, "JSON decoding error", err)
+		return
+	}
+
+	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
+		// Failed middleware (invalid credentials)
+		return
+	}
+
+	err = db.DeleteUser(data.ID)
+	if err != nil {
+		helpers.ThrowErr(w, "Deleting user error", err)
 		return
 	}
 

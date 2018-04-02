@@ -27,7 +27,13 @@ func GenerateRandomString(size int) (string, error) {
 	return base64.URLEncoding.EncodeToString(b), err
 }
 
-// CheckPassword Checks a password against a hash.
+// HashPassword hashes a password.
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
+}
+
+// CheckPassword checks a password against a hash.
 func CheckPassword(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	return err == nil

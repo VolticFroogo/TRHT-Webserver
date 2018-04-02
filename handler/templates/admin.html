@@ -44,15 +44,15 @@
             </div>
         </nav>
 
+        <br>
         <div class="container">
-            <br>
             <div class="row">
                 <div class="col s12">
                     <ul class="tabs tabs-fixed-width">
                         <li class="tab col"><a class="active" href="#gallery">Gallery</a></li>
                         <li class="tab col"><a href="#menu">Menu</a></li>
                         <li class="tab col"><a href="#contact-us">Contact Us</a></li>
-                        <li class="tab col"><a href="#users">Users</a></li>
+                        {{ if (eq .User.Priv 2) }}<li class="tab col"><a href="#users">Users</a></li>{{ end }}
                     </ul>
                 </div>
                 <div id="gallery" class="col s12">
@@ -64,11 +64,11 @@
                                     <!-- Hidden ID variable for the server to use -->
                                     <input hidden value="{{ .ID }}" class="slide-id"/>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Title }}" id="slide-title-{{ .ID }}" class="slide-title" type="text" name="title">
+                                        <input value="{{ .Title }}" id="slide-title-{{ .ID }}" class="slide-title" type="text" name="title" data-length="64" maxlength="64">
                                         <label for="slide-title-{{ .ID }}">Title</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Description }}" id="slide-description-{{ .ID }}" class="slide-description" type="text" name="description">
+                                        <input value="{{ .Description }}" id="slide-description-{{ .ID }}" class="slide-description" type="text" name="description" data-length="64" maxlength="64">
                                         <label for="slide-description-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12">
@@ -130,7 +130,7 @@
                 <div id="contact-us" class="col s12">
                     <ul class="collapsible popout" data-collapsible="accordion">
                         {{ range .ContactMessages }}<li id="contact-message-{{ .ID }}">
-                            <div class="collapsible-header">Message from {{ .Name }}</div>
+                            <div class="collapsible-header truncate">Message from {{ .Name }}</div>
                             <div class="collapsible-body">
                                 <div class="flow-text">Name: {{ .Name }}</div>
                                 <div class="flow-text">Email: <a href="mailto:{{ .Email }}">{{ .Email }}</a></div>
@@ -143,7 +143,50 @@
                         {{ end }}
                     </ul>
                 </div>
-                <div id="users" class="col s12">I am users.</div>
+                {{ if (eq .User.Priv 2) }}<div id="users" class="col s12">
+                    <ul class="collapsible popout" data-collapsible="accordion">
+                        {{ range .Users }}<li class="user-li" id="user-{{ .UUID }}">
+                            <div class="collapsible-header user-header">{{ .Fname }} {{ .Lname }}</div>
+                            <div class="collapsible-body"><span>
+                                <div class="row">
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Email }}" id="user-email-{{ .UUID }}" class="user-email" type="text" data-length="256" maxlength="256">
+                                        <label for="user-email-{{ .UUID }}">Email</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <input id="user-password-{{ .UUID }}" class="user-password" type="password" data-length="64" maxlength="64">
+                                        <label for="user-password-{{ .UUID }}">Password (leave blank to stay the same)</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Fname }}" id="user-fname-{{ .UUID }}" class="user-fname" type="text" data-length="16" maxlength="16">
+                                        <label for="user-fname-{{ .UUID }}">First Name</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <input value="{{ .Lname }}" id="user-lname-{{ .UUID }}" class="user-lname" type="text" data-length="16" maxlength="16">
+                                        <label for="user-lname-{{ .UUID }}">Last Name</label>
+                                    </div>
+                                    <div class="input-field col s12">
+                                        <select id="user-privileges-{{ .UUID }}" {{ if (eq .UUID $.User.UUID) }}disabled{{ end }}>
+                                            <option value="1" {{ if (eq .Priv 1) }}selected{{ end }}>Admin</option>
+                                            <option value="2" {{ if (eq .Priv 2) }}selected{{ end }}>Super Admin</option>
+                                        </select>
+                                        <label>Privileges</label>
+                                    </div>
+                                    <div class="input-field col">
+                                        <a class="btn waves-effect waves-light menu-item-new" onclick="UserUpdate({{ .UUID }});">Submit<i class="material-icons right">send</i></a>
+                                        <a class="btn waves-effect waves-light red menu-item-delete" onclick="UserDelete({{ .UUID }});">Delete<i class="material-icons right">delete</i></a>
+                                    </div>
+                                </div>
+                            </span></div>
+                        </li>
+                        {{ end }}
+                    </ul>
+                    <div class="fixed-action-btn">
+                        <a class="btn-floating btn-large teal tooltipped" id="user-add" data-position="left" data-delay="50" data-tooltip="Create a new user.">
+                            <i class="large material-icons">add</i>
+                        </a>
+                    </div>
+                </div>{{ end }}
             </div>
         </div>
 
@@ -156,6 +199,6 @@
         <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
         <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
         <script>var CsrfSecret = "{{ .CsrfSecret }}";</script> <!-- Set CSRF Secret in JavaScript -->
-        <script type="text/javascript" src="/js/admin.js?v53"></script>
+        <script type="text/javascript" src="/js/admin.js?v82"></script>
     </body>
 </html>

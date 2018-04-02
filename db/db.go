@@ -23,6 +23,8 @@ var (
 	Menu models.Menu
 	// ContactMessages is a struct for the admin contact messages.
 	ContactMessages models.ContactMessages
+	// Users is a struct for the admin Users.
+	Users models.Users
 )
 
 // InitDB initializes the Database.
@@ -32,6 +34,7 @@ func InitDB() (err error) {
 	UpdateSlides()
 	UpdateMenu()
 	UpdateContactMessages()
+	UpdateUsers()
 	return
 }
 
@@ -87,7 +90,7 @@ func jtiGarbageCollector(quit chan bool) {
 
 // GetUserFromID retrieves a user from the MySQL database.
 func GetUserFromID(uuid int) (user models.User, err error) {
-	rows, err := db.Query("SELECT email, password, fname, lname, create_time FROM users WHERE uuid=?", uuid)
+	rows, err := db.Query("SELECT email, password, fname, lname, priv, create_time FROM users WHERE uuid=?", uuid)
 	if err != nil {
 		return
 	}
@@ -96,7 +99,7 @@ func GetUserFromID(uuid int) (user models.User, err error) {
 
 	user.UUID = uuid
 	for rows.Next() {
-		err = rows.Scan(&user.Email, &user.Password, &user.Fname, &user.Lname, &user.CreateTime) // Scan data from query.
+		err = rows.Scan(&user.Email, &user.Password, &user.Fname, &user.Lname, &user.Priv, &user.CreateTime) // Scan data from query.
 		if err != nil {
 			return
 		}
@@ -107,7 +110,7 @@ func GetUserFromID(uuid int) (user models.User, err error) {
 
 // GetUserFromEmail retrieves a user's ID from the MySQL database.
 func GetUserFromEmail(email string) (user models.User, err error) {
-	rows, err := db.Query("SELECT uuid, password, fname, lname, create_time FROM users WHERE email=?", email)
+	rows, err := db.Query("SELECT uuid, password, fname, lname, priv, create_time FROM users WHERE email=?", email)
 	if err != nil {
 		return
 	}
@@ -116,7 +119,7 @@ func GetUserFromEmail(email string) (user models.User, err error) {
 
 	user.Email = email
 	for rows.Next() {
-		err = rows.Scan(&user.UUID, &user.Password, &user.Fname, &user.Lname, &user.CreateTime) // Scan data from query.
+		err = rows.Scan(&user.UUID, &user.Password, &user.Fname, &user.Lname, &user.Priv, &user.CreateTime) // Scan data from query.
 		if err != nil {
 			return
 		}
@@ -197,7 +200,31 @@ func UpdateContactMessages() (err error) {
 	return
 }
 
-// NewSlide creates a new menu item.
+// UpdateUsers updates the users by querying the MySQL DataBase.
+func UpdateUsers() (err error) {
+	rows, err := db.Query("SELECT uuid, email, fname, lname, priv FROM users")
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	users := models.Users{} // Create struct to store slides in.
+	user := models.User{}   // Create struct to store a slide in.
+	for rows.Next() {
+		err = rows.Scan(&user.UUID, &user.Email, &user.Fname, &user.Lname, &user.Priv) // Scan data from query.
+		if err != nil {
+			return
+		}
+
+		users = append(users, user) // Append just read slide into the slides.
+	}
+
+	Users = users // Replace the old menu with the newly read struct.
+	return
+}
+
+// NewSlide creates a new slide.
 func NewSlide(Title, Description, Image string) (id int, err error) {
 	_, err = db.Exec("INSERT INTO slides (title, description, image) VALUES (?, ?, ?)", Title, Description, Image)
 	if err != nil {
@@ -280,7 +307,7 @@ func DeleteSlide(ID int) (image string, err error) {
 	return
 }
 
-// EditMenuItem update's a menu item.
+// EditMenuItem updates a menu item.
 func EditMenuItem(ID int, Name, Description, Price string) (err error) {
 	_, err = db.Exec("UPDATE menu SET name=?, description=?, price=? WHERE id=?", Name, Description, Price, ID)
 	if err != nil {
@@ -345,5 +372,62 @@ func DeleteContactMessage(ID int) (err error) {
 	}
 
 	err = UpdateContactMessages()
+	return
+}
+
+// EditUser updates a user.
+func EditUser(ID int, Email, Password, Fname, Lname string, Privileges int) (err error) {
+	_, err = db.Exec("UPDATE users SET email=?, password=?, fname=?, lname=?, priv=? WHERE uuid=?", Email, Password, Fname, Lname, Privileges, ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateUsers()
+	return
+}
+
+// EditUserNoPassword updates a user without changing the password.
+func EditUserNoPassword(ID int, Email, Fname, Lname string, Privileges int) (err error) {
+	_, err = db.Exec("UPDATE users SET email=?, fname=?, lname=?, priv=? WHERE uuid=?", Email, Fname, Lname, Privileges, ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateUsers()
+	return
+}
+
+// NewUser creates a new user.
+func NewUser(Email, Password, Fname, Lname string, Privileges int) (id int, err error) {
+	_, err = db.Exec("INSERT INTO users (email, password, fname, lname, priv) VALUES (?, ?, ?, ?, ?)", Email, Password, Fname, Lname, Privileges)
+	if err != nil {
+		return
+	}
+
+	rows, err := db.Query("SELECT uuid FROM users WHERE email=? AND password=? AND fname=? AND lname=? AND priv=? ORDER BY uuid DESC", Email, Password, Fname, Lname, Privileges)
+	if err != nil {
+		return
+	}
+
+	defer rows.Close()
+
+	rows.Next()
+	err = rows.Scan(&id)
+	if err != nil {
+		return
+	}
+
+	err = UpdateUsers()
+	return
+}
+
+// DeleteUser deletes a user.
+func DeleteUser(ID int) (err error) {
+	_, err = db.Exec("DELETE FROM users WHERE uuid=?", ID)
+	if err != nil {
+		return
+	}
+
+	err = UpdateUsers()
 	return
 }

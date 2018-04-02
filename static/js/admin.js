@@ -1,6 +1,7 @@
 $(document).ready(function(){
     // Materialize initializations
     Waves.displayEffect();
+    $("select").material_select();
     $(".button-collapse").sideNav();
 });
 
@@ -16,7 +17,7 @@ function MenuUpdate(ID) {
     }
 
     $.ajax({
-        url: "/admin/menu",
+        url: "/admin/menu/update",
         type: "POST",
         contentType: "application/json; charset=utf-8",
         data: JSON.stringify({
@@ -134,6 +135,13 @@ function ContactDelete(ID) {
     });
 }
 
+var SlideID = 1000000;
+$("#slide-add").click(function() {
+    $("#gallery ul").append('<li id="slide-' + SlideID + '"><div class="collapsible-header slide-header">New Slide</div><div class="collapsible-body"><span><div class="row"> <input hidden value="' + SlideID + '" class="slide-id"/><div class="input-field col s12"> <input id="slide-title-' + SlideID + '" class="slide-title" type="text" name="title"> <label for="slide-title-' + SlideID + '">Title</label></div><div class="input-field col s12"> <input id="slide-description-' + SlideID + '" class="slide-description" type="text" name="description"> <label for="slide-description-' + SlideID + '">Description</label></div><div class="input-field col s12"> <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue(' + SlideID + ');">Add Image<i class="material-icons right">add_a_photo</i></a> <input hidden class="slide-image" type="file"></div><div class="input-field col"> <a class="btn waves-effect waves-light slide-new" onclick="SlideNew(' + SlideID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red slide-delete" onclick="SlideDeleteNew(' + SlideID + ');">Delete<i class="material-icons right">delete</i></a></div></div> </span></div></li>');
+    $('.collapsible').collapsible('open', $('#gallery ul li').length - 1);
+    SlideID++;
+});
+
 function SlideNew(ID) {
     Materialize.toast('Sending new slide request!', 4000);
     var slide = "#slide-" + ID;
@@ -236,12 +244,104 @@ function SlideDeleteNew(ID) {
     Materialize.toast('Successfully deleted item!', 4000);
 }
 
-var SlideID = 1000000;
-$("#slide-add").click(function() {
-    $("#gallery ul").append('<li id="slide-' + SlideID + '"><div class="collapsible-header slide-header">New Slide</div><div class="collapsible-body"><span><div class="row"> <input hidden value="' + SlideID + '" class="slide-id"/><div class="input-field col s12"> <input id="slide-title-' + SlideID + '" class="slide-title" type="text" name="title"> <label for="slide-title-' + SlideID + '">Title</label></div><div class="input-field col s12"> <input id="slide-description-' + SlideID + '" class="slide-description" type="text" name="description"> <label for="slide-description-' + SlideID + '">Description</label></div><div class="input-field col s12"> <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue(' + SlideID + ');">Add Image<i class="material-icons right">add_a_photo</i></a> <input hidden class="slide-image" type="file"></div><div class="input-field col"> <a class="btn waves-effect waves-light slide-new" onclick="SlideNew(' + SlideID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red slide-delete" onclick="SlideDeleteNew(' + SlideID + ');">Delete<i class="material-icons right">delete</i></a></div></div> </span></div></li>');
-    $('.collapsible').collapsible('open', $('#gallery ul li').length - 1);
-    SlideID++;
+var UserID = 1000000;
+$("#user-add").click(function() {
+    $("#users ul").append('<li class="user-li" id="user-' + UserID + '"><div class="collapsible-header user-header">New User</div><div class="collapsible-body"><span><div class="row"><div class="input-field col s12"> <input id="user-email-' + UserID + '" class="user-email" type="text" data-length="256" maxlength="256"> <label for="user-email-' + UserID + '">Email</label></div><div class="input-field col s12"> <input id="user-password-' + UserID + '" class="user-password" type="password" data-length="64" maxlength="64" type="password"> <label for="user-password-' + UserID + '">Password (leave blank to stay the same)</label></div><div class="input-field col s12"> <input id="user-fname-' + UserID + '" class="user-fname" type="text" data-length="16" maxlength="16"> <label for="user-fname-' + UserID + '">First Name</label></div><div class="input-field col s12"> <input id="user-lname-' + UserID + '" class="user-lname" type="text" data-length="16" maxlength="16"> <label for="user-lname-' + UserID + '">Last Name</label></div><div class="input-field col s12"> <select id="user-privileges-' + UserID + '"><option value="1" selected>Admin</option><option value="2">Super Admin</option> </select> <label>Privileges</label></div><div class="input-field col"> <a class="btn waves-effect waves-light user-new" onclick="UserNew(' + UserID + ');">Submit<i class="material-icons right">send</i></a> <a class="btn waves-effect waves-light red user-delete" onclick="UserDeleteNew(' + UserID + ');">Delete<i class="material-icons right">delete</i></a></div></div> </span></div></li>');
+    $("select").material_select();
+    $('.collapsible').collapsible('open', $('#users ul .user-li').length - 1);
+    UserID++;
 });
+
+function UserNew(ID) {
+    Materialize.toast('Sending new user request!', 4000);
+
+    var user = "#user-" + ID;
+
+    $.ajax({
+        url: "/admin/user/new",
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            CsrfSecret: CsrfSecret,
+            Email: $(user + " .user-email").val(),
+            Password: $(user + " .user-password").val(),
+            Fname: $(user + " .user-fname").val(),
+            Lname: $(user + " .user-lname").val(),
+            Privileges: parseInt($("#user-privileges-" + ID).val())
+        }),
+        dataType: "json",
+        success: function(r) {
+            if (r.success) {
+                $(user + " .user-new").attr("onclick", "UserUpdate(" + r.id + ");");
+                $(user + " .user-delete").attr("onclick", "UserDelete(" + r.id + ");");
+                $(user + " .user-header").text($(user + " .user-fname").val() + " " + $(user + " .user-lname").val());
+                $(user).attr("id", "user-" + r.id);
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully added new user!', 4000);
+            }
+        }
+    });
+}
+
+function UserUpdate(ID) {
+    Materialize.toast('Sending update request!', 4000);
+
+    var user = "#user-" + ID;
+
+    $.ajax({
+        url: "/admin/user/update",
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            CsrfSecret: CsrfSecret,
+            ID: ID,
+            Email: $(user + " .user-email").val(),
+            Password: $(user + " .user-password").val(),
+            Fname: $(user + " .user-fname").val(),
+            Lname: $(user + " .user-lname").val(),
+            Privileges: parseInt($("#user-privileges-" + ID).val())
+        }),
+        dataType: "json",
+        success: function(r) {
+            if (r.success) {
+                $(user + " .user-header").text($(user + " .user-fname").val() + " " + $(user + " .user-lname").val());
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully updated!', 4000);
+            }
+        }
+    });
+}
+
+function UserDelete(ID) {
+    Materialize.toast('Sending delete request!', 4000);
+
+    var user = "#user-" + ID;
+
+    $.ajax({
+        url: "/admin/user/delete",
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        data: JSON.stringify({
+            CsrfSecret: CsrfSecret,
+            ID: ID
+        }),
+        dataType: "json",
+        success: function(r) {
+            if (r.success) {
+                $(user).remove();
+                Materialize.Toast.removeAll(); // Clear all other toasts.
+                Materialize.toast('Successfully deleted user!', 4000);
+            }
+        }
+    });
+}
+
+function UserDeleteNew(ID) {
+    var user = "#user-" + ID;
+
+    $(user).remove();
+    Materialize.toast('Successfully deleted user!', 4000);
+}
 
 function ImageDialogue(ID) {
     $("#slide-" + ID + " .slide-image").trigger('click');

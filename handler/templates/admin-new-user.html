@@ -1,0 +1,34 @@
+<li class="user-li" id="user-' + UserID + '">
+    <div class="collapsible-header user-header">New User</div>
+    <div class="collapsible-body"><span>
+        <div class="row">
+            <div class="input-field col s12">
+                <input id="user-email-' + UserID + '" class="user-email" type="text" data-length="256" maxlength="256">
+                <label for="user-email-' + UserID + '">Email</label>
+            </div>
+            <div class="input-field col s12">
+                <input id="user-password-' + UserID + '" class="user-password" type="password" data-length="64" maxlength="64" type="password">
+                <label for="user-password-' + UserID + '">Password (leave blank to stay the same)</label>
+            </div>
+            <div class="input-field col s12">
+                <input id="user-fname-' + UserID + '" class="user-fname" type="text" data-length="16" maxlength="16">
+                <label for="user-fname-' + UserID + '">First Name</label>
+            </div>
+            <div class="input-field col s12">
+                <input id="user-lname-' + UserID + '" class="user-lname" type="text" data-length="16" maxlength="16">
+                <label for="user-lname-' + UserID + '">Last Name</label>
+            </div>
+            <div class="input-field col s12">
+                <select id="user-privileges-' + UserID + '">
+                    <option value="1" selected>Admin</option>
+                    <option value="2">Super Admin</option>
+                </select>
+                <label>Privileges</label>
+            </div>
+            <div class="input-field col">
+                <a class="btn waves-effect waves-light user-new" onclick="UserNew(' + UserID + ');">Submit<i class="material-icons right">send</i></a>
+                <a class="btn waves-effect waves-light red user-delete" onclick="UserDeleteNew(' + UserID + ');">Delete<i class="material-icons right">delete</i></a>
+            </div>
+        </div>
+    </span></div>
+</li>

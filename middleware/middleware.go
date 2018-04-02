@@ -7,6 +7,7 @@ import (
 	"github.com/VolticFroogo/TRHT-Webserver/helpers"
 	"github.com/VolticFroogo/TRHT-Webserver/middleware/myJWT"
 	"github.com/VolticFroogo/TRHT-Webserver/models"
+	"github.com/gorilla/context"
 )
 
 // Admin handles authentication for admin pages.
@@ -24,20 +25,21 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	}
 
 	if authTokenString.Value != "" {
-		authTokenValid, err := myJWT.CheckToken(authTokenString.Value, "", false, false)
+		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, "", false, false)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
+			context.Set(r, "priv", priv)
 			next(w, r)
 			return
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, err := myJWT.CheckToken(refreshTokenString.Value, "", true, false)
+		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, "", true, false)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -52,6 +54,7 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
+			context.Set(r, "priv", priv)
 			next(w, r)
 			return
 		}
@@ -77,20 +80,21 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	csrfSecret := r.FormValue("csrfSecret")
 
 	if authTokenString.Value != "" {
-		authTokenValid, err := myJWT.CheckToken(authTokenString.Value, csrfSecret, false, true)
+		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, csrfSecret, false, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
+			context.Set(r, "priv", priv)
 			next(w, r)
 			return
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, err := myJWT.CheckToken(refreshTokenString.Value, csrfSecret, true, true)
+		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, csrfSecret, true, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -105,6 +109,7 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
+			context.Set(r, "priv", priv)
 			next(w, r)
 			return
 		}
@@ -130,7 +135,7 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 	}
 
 	if authTokenString.Value != "" {
-		authTokenValid, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
+		authTokenValid, _, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -142,7 +147,7 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
+		refreshTokenValid, _, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return

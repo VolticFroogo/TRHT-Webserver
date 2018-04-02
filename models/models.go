@@ -14,6 +14,13 @@ const (
 	RefreshTokenValidTime = time.Hour * 72
 )
 
+// Privileges
+const (
+	PrivNone = iota
+	PrivAdmin
+	PrivSuperAdmin
+)
+
 // Slide is a slide for the slides on the index page.
 type Slide struct {
 	ID                        int
@@ -36,6 +43,12 @@ type Menu []MenuItem
 type MenuItemEdit struct {
 	ID                                   int
 	CsrfSecret, Name, Description, Price string
+}
+
+// UserEdit is the struct recieved by an admin when they update a user.
+type UserEdit struct {
+	ID, Privileges                            int
+	CsrfSecret, Email, Password, Fname, Lname string
 }
 
 // ContactMessage is the struct for a message on the admin page.
@@ -61,14 +74,18 @@ type SlideEdit struct {
 
 // User is a user retrieved from a Database.
 type User struct {
-	UUID                                      int
+	UUID, Priv                                int
 	Email, Password, Fname, Lname, CreateTime string
 }
+
+// Users is an array of User for the admin page.
+type Users []User
 
 // TokenClaims are the claims in a token.
 type TokenClaims struct {
 	jwt.StandardClaims
 	CSRF string `json:"csrf"`
+	Priv int    `json:"priv"`
 }
 
 // TemplateVariables is the struct used when executing a template.
@@ -78,6 +95,8 @@ type TemplateVariables struct {
 	Slides          Slides
 	Menu            Menu
 	ContactMessages ContactMessages
+	Users           Users
+	SuperAdmin      bool
 }
 
 // AJAXData is the struct used with the AJAX middleware.

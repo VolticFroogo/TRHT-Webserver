@@ -1,44 +1,61 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Admin Login | TRHT</title>
+    <head>
+        <title>Admin Login | TRHT</title>
 
-    <!-- Meta Tags -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <!-- Meta Tags -->
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="../css/login.css">
-  </head>
+        <!-- CSS -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="../css/login.css">
 
-  <body>
-    <!-- Login Box -->
-    <div class="container" id="login">
-      <div class="row">
-        <div class="col s10 m8 l6 offset-s1 offset-m2 offset-l3 white z-depth-3 center-align" id="box">
-          <p class="flow-text">TRHT Admin Login</p>
-          <div class="input-field col s10 offset-s1">
-            <i class="material-icons prefix">email</i>
-            <input id="email" type="email" class="validate">
-            <label for="email">Email</label>
-          </div>
-          <div class="input-field col s10 offset-s1">
-            <i class="material-icons prefix">vpn_key</i>
-            <input id="password" type="password" class="validate">
-            <label for="password">Password</label>
-          </div>
-          <a id="login-button" class="waves-effect waves-light btn">Login</a>
-          <br><br>
+        <!-- SEO Meta Tags -->
+        <meta name="title" content="TRHT Admin Login"/>
+        <meta name="description" content="The login page for The Rabbit Hole Tearoom to access the admin page."/>
+        <meta name="keywords" content="The Rabbit Hole Tearoom, TRHT, Admin, Login, Tearoom, Rabbit Hole Tearoom"/>
+        <meta name="copyright" content="Copyright of Froogo."/>
+
+        <!-- Social Media Meta Tags -->
+        <meta property="og:title" content="TRHT Admin Login"/>
+        <meta property="og:url" content="https://therabbitholetearoom.co.uk/login"/>
+        <meta property="og:image" content="https://therabbitholetearoom.co.uk/img/logo.png"/>
+        <meta property="og:description" content="The login page for The Rabbit Hole Tearoom to access the admin page."/>
+    </head>
+
+    <body>
+        <!-- Login Box -->
+        <div class="container" id="login">
+            <div class="row">
+                <div class="col s10 m8 l6 offset-s1 offset-m2 offset-l3 white z-depth-3 center-align" id="box">
+                    <p class="flow-text">TRHT Admin Login</p>
+                    <div class="input-field col s10 offset-s1">
+                        <i class="material-icons prefix">email</i>
+                        <input id="email" type="email" class="validate">
+                        <label for="email">Email</label>
+                    </div>
+                    <div class="input-field col s10 offset-s1">
+                        <i class="material-icons prefix">vpn_key</i>
+                        <input id="password" type="password" class="validate">
+                        <label for="password">Password</label>
+                    </div>
+                    <div class="input-field col s10 offset-s1">
+                        <!-- Google ReCaptcha v2 (sitekey changed since I doxed myself :P) -->
+                        <div class="g-recaptcha" data-sitekey="6LeP2UwUAAAAADD2tmjxICf-qYUaoV9qG4MAwp0d" style="transform:scale(0.77);-webkit-transform:scale(0.77);transform-origin:0 0;-webkit-transform-origin:0 0;"></div>
+                    </div>
+                    <a id="login-button" class="waves-effect waves-light btn">Login</a>
+                    <br><br>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
 
-    <!-- Import JavaScript -->
-    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
-    <script type="text/javascript" src="../js/login.js"></script>
-  </body>
+        <!-- Import JavaScript -->
+        <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+        <script type="text/javascript" src='https://www.google.com/recaptcha/api.js'></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/js/materialize.min.js"></script>
+        <script type="text/javascript" src="../js/login.js?v6"></script>
+    </body>
 </html>
