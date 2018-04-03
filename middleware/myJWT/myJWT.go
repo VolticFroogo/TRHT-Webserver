@@ -48,6 +48,21 @@ func InitKeys() error {
 	return nil
 }
 
+// DeleteJTI deletes a JTI when given a refresh token.
+func DeleteJTI(tokenString string) (err error) {
+	token, _ := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+
+		return verifyKey, nil
+	})
+
+	tokenClaims, _ := token.Claims.(*models.TokenClaims)
+	err = db.DeleteJTI(tokenClaims.StandardClaims.Id)
+	return
+}
+
 /*
 	Refreshing tokens and all related functions.
 */
@@ -70,7 +85,7 @@ func RefreshTokens(oldRefreshTokenString string) (newAuthTokenString, newRefresh
 		return
 	}
 
-	return CreateNewTokens(oldTokenClaims.StandardClaims.Subject, oldTokenClaims.Priv)
+	return CreateNewTokens(oldTokenClaims.StandardClaims.Subject)
 }
 
 /*
@@ -78,7 +93,7 @@ func RefreshTokens(oldRefreshTokenString string) (newAuthTokenString, newRefresh
 */
 
 // CheckToken checks the validity of a token.
-func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid bool, priv int, err error) {
+func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid bool, uuid string, err error) {
 	token, err := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -93,31 +108,31 @@ func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid 
 	}
 
 	if csrfSecret != tokenClaims.CSRF && checkCsrf {
-		return false, models.PrivNone, fmt.Errorf("csrf token doesn't match jwt")
+		return false, "", fmt.Errorf("csrf token doesn't match jwt")
 	}
 
 	if refresh {
 		jti, err := db.GetJTI(tokenClaims.StandardClaims.Id)
 		if err != nil {
-			return false, models.PrivNone, fmt.Errorf("getting jti error")
+			return false, "", fmt.Errorf("getting jti error")
 		}
 
 		jtiValid, err := db.CheckJTI(jti)
 		if err != nil {
-			return false, models.PrivNone, fmt.Errorf("checking jti error")
+			return false, "", fmt.Errorf("checking jti error")
 		}
 
 		if jtiValid {
 			err = db.DeleteJTI(tokenClaims.StandardClaims.Id) // There will be a new JTI created in it's place by the middleware.
 			if err != nil {
-				return true, tokenClaims.Priv, err
+				return true, tokenClaims.StandardClaims.Subject, err
 			}
 
-			return true, tokenClaims.Priv, nil
+			return true, tokenClaims.StandardClaims.Subject, nil
 		}
 	}
 
-	return token.Valid, tokenClaims.Priv, nil
+	return token.Valid, tokenClaims.StandardClaims.Subject, nil
 }
 
 /*
@@ -125,7 +140,7 @@ func CheckToken(tokenString, csrfSecret string, refresh, checkCsrf bool) (valid 
 */
 
 // CreateNewTokens creates an auth and refresh token.
-func CreateNewTokens(uuid string, priv int) (authTokenString, refreshTokenString, csrfSecret string, err error) {
+func CreateNewTokens(uuid string) (authTokenString, refreshTokenString, csrfSecret string, err error) {
 	// Generate the CSRF Secret
 	csrfSecret, err = generateCSRFSecret()
 	if err != nil {
@@ -133,32 +148,18 @@ func CreateNewTokens(uuid string, priv int) (authTokenString, refreshTokenString
 	}
 
 	// Generate the refresh token
-	refreshTokenString, err = createRefreshTokenString(uuid, csrfSecret, priv)
+	refreshTokenString, err = createRefreshTokenString(uuid, csrfSecret)
 	if err != nil {
 		return
 	}
 
 	// Generate the auth token
-	authTokenString, err = createAuthTokenString(uuid, csrfSecret, priv)
+	authTokenString, err = createAuthTokenString(uuid, csrfSecret)
 
 	return
 }
 
-// GetUUIDFromToken get's a UUID from a token string.
-func GetUUIDFromToken(tokenString string) (UUID string) {
-	token, _ := jwt.ParseWithClaims(tokenString, &models.TokenClaims{}, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-
-		return verifyKey, nil
-	})
-
-	tokenClaims, _ := token.Claims.(*models.TokenClaims)
-	return tokenClaims.StandardClaims.Subject
-}
-
-func createRefreshTokenString(uuid, csrfSecret string, priv int) (refreshTokenString string, err error) {
+func createRefreshTokenString(uuid, csrfSecret string) (refreshTokenString string, err error) {
 	refreshTokenExp := time.Now().Add(models.RefreshTokenValidTime).Unix()
 	refreshJti, err := db.StoreRefreshToken()
 	if err != nil {
@@ -172,7 +173,6 @@ func createRefreshTokenString(uuid, csrfSecret string, priv int) (refreshTokenSt
 			ExpiresAt: refreshTokenExp, // Expiry time in UNIX
 		},
 		csrfSecret, // CSRF Secret to prevent CSRF
-		priv,
 	}
 
 	// Make a new unsigned token
@@ -183,7 +183,7 @@ func createRefreshTokenString(uuid, csrfSecret string, priv int) (refreshTokenSt
 	return
 }
 
-func createAuthTokenString(uuid, csrfSecret string, priv int) (authTokenString string, err error) {
+func createAuthTokenString(uuid, csrfSecret string) (authTokenString string, err error) {
 	authTokenExp := time.Now().Add(models.AuthTokenValidTime).Unix()
 
 	authClaims := models.TokenClaims{
@@ -192,7 +192,6 @@ func createAuthTokenString(uuid, csrfSecret string, priv int) (authTokenString s
 			ExpiresAt: authTokenExp,
 		},
 		csrfSecret,
-		priv,
 	}
 
 	// Make a new unsigned token

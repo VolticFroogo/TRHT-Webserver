@@ -85,7 +85,6 @@ type Users []User
 type TokenClaims struct {
 	jwt.StandardClaims
 	CSRF string `json:"csrf"`
-	Priv int    `json:"priv"`
 }
 
 // TemplateVariables is the struct used when executing a template.

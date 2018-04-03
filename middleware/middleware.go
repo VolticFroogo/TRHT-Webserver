@@ -25,21 +25,21 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	}
 
 	if authTokenString.Value != "" {
-		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, "", false, false)
+		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, "", false, false)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			next(w, r)
 			return
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, "", true, false)
+		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, "", true, false)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -54,7 +54,7 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			next(w, r)
 			return
 		}
@@ -80,21 +80,21 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	csrfSecret := r.FormValue("csrfSecret")
 
 	if authTokenString.Value != "" {
-		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, csrfSecret, false, true)
+		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, csrfSecret, false, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			next(w, r)
 			return
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, csrfSecret, true, true)
+		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, csrfSecret, true, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -109,7 +109,7 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			next(w, r)
 			return
 		}
@@ -135,20 +135,20 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 	}
 
 	if authTokenString.Value != "" {
-		authTokenValid, priv, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
+		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
 		}
 
 		if authTokenValid {
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			return true
 		}
 	}
 
 	if refreshTokenString.Value != "" {
-		refreshTokenValid, priv, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
+		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
 		if err != nil {
 			helpers.ThrowErr(w, "Checking token error", err)
 			return
@@ -163,7 +163,7 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 
 			WriteNewAuth(w, r, newAuthTokenString, newRefreshTokenString, newCsrfSecret)
 
-			context.Set(r, "priv", priv)
+			context.Set(r, "uuid", uuid)
 			return true
 		}
 	}

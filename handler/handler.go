@@ -146,14 +146,7 @@ func contactUs(w http.ResponseWriter, r *http.Request) {
 }
 
 func admin(w http.ResponseWriter, r *http.Request) {
-	authTokenString, err := r.Cookie("authToken")
-	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Reading cookie error", err)
-		return
-	}
-
-	uuidString := myJWT.GetUUIDFromToken(authTokenString.Value)
+	uuidString := context.Get(r, "uuid").(string)
 	uuid, err := strconv.Atoi(uuidString)
 	if err != nil {
 		successResponse(false, w)
@@ -196,6 +189,14 @@ func admin(w http.ResponseWriter, r *http.Request) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
+	refreshTokenString, err := r.Cookie("refreshToken")
+	if err != nil {
+		helpers.ThrowErr(w, "Reading cookie error", err)
+		return
+	}
+
+	myJWT.DeleteJTI(refreshTokenString.Value) // Remove their old Refresh Token.
+
 	middleware.WriteNewAuth(w, r, "", "", "")
 
 	middleware.RedirectToLogin(w, r)
@@ -234,7 +235,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	valid := helpers.CheckPassword(credentials.Password, user.Password)
 
 	if valid {
-		authTokenString, refreshTokenString, csrfSecret, err := myJWT.CreateNewTokens(strconv.Itoa(user.UUID), user.Priv)
+		authTokenString, refreshTokenString, csrfSecret, err := myJWT.CreateNewTokens(strconv.Itoa(user.UUID))
 		if err != nil {
 			successResponse(false, w)
 			helpers.ThrowErr(w, "Creating tokens error", err)
@@ -545,8 +546,20 @@ func userUpdate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	priv := context.Get(r, "priv").(int)
-	if priv != models.PrivSuperAdmin {
+	uuidString := context.Get(r, "uuid").(string)
+	uuid, err := strconv.Atoi(uuidString)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error converting string to int", err)
+	}
+
+	user, err := db.GetUserFromID(uuid)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error getting user from ID", err)
+	}
+
+	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
 		successResponse(false, w)
 		return
@@ -596,8 +609,20 @@ func userNew(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	priv := context.Get(r, "priv").(int)
-	if priv != models.PrivSuperAdmin {
+	uuidString := context.Get(r, "uuid").(string)
+	uuid, err := strconv.Atoi(uuidString)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error converting string to int", err)
+	}
+
+	user, err := db.GetUserFromID(uuid)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error getting user from ID", err)
+	}
+
+	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
 		successResponse(false, w)
 		return
@@ -645,8 +670,20 @@ func userDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	priv := context.Get(r, "priv").(int)
-	if priv != models.PrivSuperAdmin {
+	uuidString := context.Get(r, "uuid").(string)
+	uuid, err := strconv.Atoi(uuidString)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error converting string to int", err)
+	}
+
+	user, err := db.GetUserFromID(uuid)
+	if err != nil {
+		successResponse(false, w)
+		helpers.ThrowErr(w, "Error getting user from ID", err)
+	}
+
+	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
 		successResponse(false, w)
 		return
