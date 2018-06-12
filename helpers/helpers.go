@@ -3,7 +3,6 @@ package helpers
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -40,8 +39,7 @@ func CheckPassword(password, hash string) bool {
 }
 
 // ThrowErr throws an HTTP error and logs it to the server.
-func ThrowErr(w http.ResponseWriter, errName string, err error) {
+func ThrowErr(w http.ResponseWriter, r *http.Request, errName string, err error) {
 	log.Printf("%v: %v\n", errName, err)
-	fmt.Fprintf(w, "%v: %v\n", errName, err)
-	w.WriteHeader(http.StatusInternalServerError)
+	http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 }

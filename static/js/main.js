@@ -2,9 +2,7 @@ $(document).ready(function(){
     // Materialize initializations
     Waves.displayEffect();
     $(".button-collapse").sideNav();
-    $(document).ready(function(){
-        $('.slider').slider();
-    });
+    $('.slider').slider();
     $('.parallax').parallax();
     $('select').material_select();
 

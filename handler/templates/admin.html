@@ -2,7 +2,7 @@
 <html>
     <head>
         <!-- Title -->
-        <title>Admin | TRHT</title>
+        <title>TRHT | Admin</title>
 
         <!-- Import CSS -->
         <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -22,13 +22,13 @@
                     <a href="/" class="brand-logo">Admin</a>
                 </span>
                 <span class="hide-on-small-only">
-                    <a href="/" class="brand-logo">TRHTearoom Admin</a>
+                    <a href="/" class="brand-logo">TRHTearoom | Admin</a>
                 </span>
                 <a href="#" data-activates="side-bar" class="button-collapse"><i class="material-icons">menu</i></a>
                 <ul class="right hide-on-med-and-down">
                     <li><a>Welcome {{ .User.Fname }}</a></li>
                     <li><a href="/">Homepage</a></li>
-                    <li><a onclick="document.getElementById('logout').submit();">Logout</a></li>
+                    <li><a onclick="$('#logout').submit();">Logout</a></li>
                 </ul>
                 <!-- Mobile Sidebar for Navbar -->
                 <ul class="side-nav" id="side-bar">
@@ -36,7 +36,7 @@
                     <li><a>Welcome {{ .User.Fname }}</a></li>
                     <li><div class="divider"></div></li>
                     <li><a class="subheader">Actions</a></li>
-                    <li><a onclick="document.getElementById('logout').submit();">Logout</a></li>
+                    <li><a onclick="$('#logout').submit();">Logout</a></li>
                     <li><div class="divider"></div></li>
                     <li><a class="subheader">Pages</a></li>
                     <li><a href="/">Homepage</a></li>
@@ -64,16 +64,16 @@
                                     <!-- Hidden ID variable for the server to use -->
                                     <input hidden value="{{ .ID }}" class="slide-id"/>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Title }}" id="slide-title-{{ .ID }}" class="slide-title" type="text" name="title" data-length="64" maxlength="64">
+                                        <input value="{{ .Title }}" id="slide-title-{{ .ID }}" class="slide-title" type="text" name="title" data-length="64" maxlength="64" autocomplete="off">
                                         <label for="slide-title-{{ .ID }}">Title</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Description }}" id="slide-description-{{ .ID }}" class="slide-description" type="text" name="description" data-length="64" maxlength="64">
+                                        <input value="{{ .Description }}" id="slide-description-{{ .ID }}" class="slide-description" type="text" name="description" data-length="64" maxlength="64" autocomplete="off">
                                         <label for="slide-description-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12">
                                         <a class="btn waves-effect waves-light slide-image-button" onclick="ImageDialogue({{ .ID }});">Add Image<i class="material-icons right">add_a_photo</i></a>
-                                        <input hidden class="slide-image" type="file">
+                                        <input hidden class="slide-image" type="file" autocomplete="off">
                                     </div>
                                     <div class="input-field col">
                                         <a class="btn waves-effect waves-light slide-new" onclick="SlideUpdate({{ .ID }});">Submit<i class="material-icons right">send</i></a>
@@ -97,19 +97,19 @@
                             <div class="collapsible-body"><span>
                                 <div class="row">
                                     <div class="input-field col s12">
-                                        <input value="{{ .Name }}" id="menu-item-name-{{ .ID }}" class="menu-item-name" type="text" data-length="64" maxlength="64">
+                                        <input value="{{ .Name }}" id="menu-item-name-{{ .ID }}" class="menu-item-name" type="text" data-length="64" maxlength="64" autocomplete="off">
                                         <label for="menu-item-name-{{ .ID }}">Name</label>
                                     </div>
                                     <div class="input-field col s12 hide-on-small-only">
-                                        <input value="{{ .Description }}" id="menu-item-description-regular-{{ .ID }}" class="menu-item-description-regular" type="text" data-length="256" maxlength="256">
+                                        <input value="{{ .Description }}" id="menu-item-description-regular-{{ .ID }}" class="menu-item-description-regular" type="text" data-length="256" maxlength="256" autocomplete="off">
                                         <label for="menu-item-description-regular-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12 hide-on-med-and-up">
-                                        <textarea id="menu-item-description-large-{{ .ID }}" class="materialize-textarea menu-item-description-large" data-length="256" maxlength="256">{{ .Description }}</textarea>
+                                        <textarea id="menu-item-description-large-{{ .ID }}" class="materialize-textarea menu-item-description-large" data-length="256" maxlength="256" autocomplete="off">{{ .Description }}</textarea>
                                         <label for="menu-item-description-large-{{ .ID }}">Description</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Price }}" id="menu-item-price-{{ .ID }}" class="menu-item-price" type="text" data-length="8" maxlength="8">
+                                        <input value="{{ .Price }}" id="menu-item-price-{{ .ID }}" class="menu-item-price" type="text" data-length="8" maxlength="8" autocomplete="off">
                                         <label for="menu-item-price-{{ .ID }}">Price</label>
                                     </div>
                                     <div class="input-field col">
@@ -150,23 +150,23 @@
                             <div class="collapsible-body"><span>
                                 <div class="row">
                                     <div class="input-field col s12">
-                                        <input value="{{ .Email }}" id="user-email-{{ .UUID }}" class="user-email" type="text" data-length="256" maxlength="256">
+                                        <input value="{{ .Email }}" id="user-email-{{ .UUID }}" class="user-email" type="text" data-length="256" maxlength="256" autocomplete="off">
                                         <label for="user-email-{{ .UUID }}">Email</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input id="user-password-{{ .UUID }}" class="user-password tooltipped" data-position="top" data-delay="50" data-tooltip="You can leave the password blank to not change it." type="password" data-length="64" maxlength="64">
+                                        <input id="user-password-{{ .UUID }}" class="user-password tooltipped" data-position="top" data-delay="50" data-tooltip="You can leave the password blank to not change it." type="password" data-length="64" maxlength="64" autocomplete="off">
                                         <label for="user-password-{{ .UUID }}">Password</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Fname }}" id="user-fname-{{ .UUID }}" class="user-fname" type="text" data-length="16" maxlength="16">
+                                        <input value="{{ .Fname }}" id="user-fname-{{ .UUID }}" class="user-fname" type="text" data-length="16" maxlength="16" autocomplete="off">
                                         <label for="user-fname-{{ .UUID }}">First Name</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <input value="{{ .Lname }}" id="user-lname-{{ .UUID }}" class="user-lname" type="text" data-length="16" maxlength="16">
+                                        <input value="{{ .Lname }}" id="user-lname-{{ .UUID }}" class="user-lname" type="text" data-length="16" maxlength="16" autocomplete="off">
                                         <label for="user-lname-{{ .UUID }}">Last Name</label>
                                     </div>
                                     <div class="input-field col s12">
-                                        <select id="user-privileges-{{ .UUID }}" {{ if (eq .UUID $.User.UUID) }}disabled{{ end }}>
+                                        <select id="user-privileges-{{ .UUID }}" autocomplete="off" {{ if (eq .UUID $.User.UUID) }}disabled{{ end }}>
                                             <option value="1" {{ if (eq .Priv 1) }}selected{{ end }}>Admin</option>
                                             <option value="2" {{ if (eq .Priv 2) }}selected{{ end }}>Super Admin</option>
                                         </select>

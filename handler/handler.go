@@ -53,6 +53,7 @@ type slideData struct {
 // Start the server by handling the web server.
 func Start() {
 	r := mux.NewRouter()
+	r.StrictSlash(true)
 
 	r.Handle("/", http.HandlerFunc(index))
 	r.Handle("/contact-us", http.HandlerFunc(contactUs))
@@ -97,8 +98,8 @@ func Start() {
 func index(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("handler/templates/index.html") // Parse the HTML page
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Template parsing error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Template parsing error", err)
 		return
 	}
 
@@ -108,8 +109,8 @@ func index(w http.ResponseWriter, r *http.Request) {
 	}
 	err = t.Execute(w, variables) // Execute temmplate with variables
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Template execution error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Template execution error", err)
 	}
 }
 
@@ -117,59 +118,59 @@ func contactUs(w http.ResponseWriter, r *http.Request) {
 	var message contactUsData                       // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&message) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if message.Captcha == "" {
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return // There is no captcha response
 	}
 	captchaSuccess, err := captcha.Verify(message.Captcha, r.Header.Get("CF-Connecting-IP")) // Check the captcha
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Recaptcha error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Recaptcha error", err)
 	}
 	if !captchaSuccess {
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return // Unsuccessful recaptcha
 	}
 
 	err = db.NewContactMessage(message.Name, message.Email, message.Message)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Adding message to DB error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Adding message to DB error", err)
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func admin(w http.ResponseWriter, r *http.Request) {
 	uuidString := context.Get(r, "uuid").(string)
 	uuid, err := strconv.Atoi(uuidString)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error converting string to int", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error converting string to int", err)
 	}
 
 	user, err := db.GetUserFromID(uuid)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error getting user from ID", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error getting user from ID", err)
 	}
 
 	t, err := template.ParseFiles("handler/templates/admin.html") // Parse the HTML page
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Template parsing error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Template parsing error", err)
 		return
 	}
 
 	csrfSecret, err := r.Cookie("csrfSecret")
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
@@ -183,15 +184,15 @@ func admin(w http.ResponseWriter, r *http.Request) {
 	}
 	err = t.Execute(w, variables) // Execute temmplate with variables
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Template execution error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Template execution error", err)
 	}
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	refreshTokenString, err := r.Cookie("refreshToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
@@ -206,29 +207,29 @@ func login(w http.ResponseWriter, r *http.Request) {
 	var credentials loginData                           // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&credentials) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if credentials.Captcha == "" {
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return // There is no captcha response.
 	}
 	captchaSuccess, err := captcha.Verify(credentials.Captcha, r.Header.Get("CF-Connecting-IP")) // Check the captcha.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Recaptcha error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Recaptcha error", err)
 	}
 	if !captchaSuccess {
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return // Unsuccessful captcha.
 	}
 
 	user, err := db.GetUserFromEmail(credentials.Email)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Getting user from DB error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Getting user from DB error", err)
 		return
 	}
 
@@ -237,18 +238,18 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if valid {
 		authTokenString, refreshTokenString, csrfSecret, err := myJWT.CreateNewTokens(strconv.Itoa(user.UUID))
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Creating tokens error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Creating tokens error", err)
 			return
 		}
 
 		middleware.WriteNewAuth(w, r, authTokenString, refreshTokenString, csrfSecret)
 
-		successResponse(true, w)
+		successResponse(true, w, r)
 		return
 	}
 
-	successResponse(false, w)
+	successResponse(false, w, r)
 }
 
 func slideNew(w http.ResponseWriter, r *http.Request) {
@@ -261,31 +262,31 @@ func slideNew(w http.ResponseWriter, r *http.Request) {
 
 	file, handle, err := r.FormFile("imageFile")
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Decoding image error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Decoding image error", err)
 		return
 	}
 	defer file.Close()
 
 	imageID, err := helpers.GenerateRandomString(32)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Generating imageID error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Generating imageID error", err)
 		return
 	}
 
 	fileLocation := "/img/slide/" + imageID + filepath.Ext(handle.Filename)
 	err = saveFile(w, file, fileLocation)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Saving image error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Saving image error", err)
 		return
 	}
 
 	id, err := db.NewSlide(data.Title, data.Description, fileLocation)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Editing slide error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Editing slide error", err)
 		return
 	}
 
@@ -295,8 +296,8 @@ func slideNew(w http.ResponseWriter, r *http.Request) {
 	}
 	resEnc, err := json.Marshal(res) // Encode response into JSON.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON encoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON encoding error", err)
 		return
 	}
 	w.Write(resEnc) // Write JSON data to response writer.
@@ -307,15 +308,15 @@ func slideUpdate(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Converting ID string to int error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Converting ID string to int error", err)
 		return
 	}
 
 	cImage, err := strconv.ParseBool(r.FormValue("cImage"))
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Converting cImage string to bool error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Converting cImage string to bool error", err)
 		return
 	}
 
@@ -329,58 +330,58 @@ func slideUpdate(w http.ResponseWriter, r *http.Request) {
 	if data.CImage {
 		file, handle, err := r.FormFile("imageFile")
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Decoding image error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Decoding image error", err)
 			return
 		}
 		defer file.Close()
 
 		imageID, err := helpers.GenerateRandomString(32)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Generating imageID error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Generating imageID error", err)
 			return
 		}
 
 		fileLocation := "/img/slide/" + imageID + filepath.Ext(handle.Filename)
 		err = saveFile(w, file, fileLocation)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Saving image error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Saving image error", err)
 			return
 		}
 
 		oldFileLocation, err := db.EditSlide(data.ID, data.Title, data.Description, fileLocation)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Editing slide error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Editing slide error", err)
 			return
 		}
 
 		err = deleteFile(oldFileLocation)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Deleting oldImage error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Deleting oldImage error", err)
 			return
 		}
 	} else {
 		err := db.EditSlideNoFile(data.ID, data.Title, data.Description)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Editing slide error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Editing slide error", err)
 			return
 		}
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func slideDelete(w http.ResponseWriter, r *http.Request) {
 	var data models.SlideEdit                    // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
@@ -391,19 +392,19 @@ func slideDelete(w http.ResponseWriter, r *http.Request) {
 
 	image, err := db.DeleteSlide(data.ID)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Deleting menu item error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Deleting menu item error", err)
 		return
 	}
 
 	err = deleteFile(image)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Deleting image error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Deleting image error", err)
 		return
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func deleteFile(fileLocation string) (err error) {
@@ -425,46 +426,46 @@ func menuUpdate(w http.ResponseWriter, r *http.Request) {
 	var data models.MenuItemEdit                 // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	err = db.EditMenuItem(data.ID, data.Name, data.Description, data.Price)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Editing menu item error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Editing menu item error", err)
 		return
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func menuNew(w http.ResponseWriter, r *http.Request) {
 	var data models.MenuItemEdit                 // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	id, err := db.NewMenuItem(data.Name, data.Description, data.Price)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Creating menu item error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Creating menu item error", err)
 		return
 	}
 
@@ -474,8 +475,8 @@ func menuNew(w http.ResponseWriter, r *http.Request) {
 	}
 	resEnc, err := json.Marshal(res) // Encode response into JSON.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON encoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON encoding error", err)
 		return
 	}
 	w.Write(resEnc) // Write JSON data to response writer.
@@ -485,112 +486,112 @@ func menuDelete(w http.ResponseWriter, r *http.Request) {
 	var data models.MenuItemEdit                 // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	err = db.DeleteMenuItem(data.ID)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Deleting menu item error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Deleting menu item error", err)
 		return
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func contactDelete(w http.ResponseWriter, r *http.Request) {
 	var data models.ContactMessageEdit           // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	err = db.DeleteContactMessage(data.ID)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Deleting contact message error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Deleting contact message error", err)
 		return
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
 func userUpdate(w http.ResponseWriter, r *http.Request) {
 	var data models.UserEdit                     // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	uuidString := context.Get(r, "uuid").(string)
 	uuid, err := strconv.Atoi(uuidString)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error converting string to int", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error converting string to int", err)
 	}
 
 	user, err := db.GetUserFromID(uuid)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error getting user from ID", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error getting user from ID", err)
 	}
 
 	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	if data.Password == "" {
 		err = db.EditUserNoPassword(data.ID, data.Email, data.Fname, data.Lname, data.Privileges)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Editing user (no password) error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Editing user (no password) error", err)
 			return
 		}
 	} else {
 		password, err := helpers.HashPassword(data.Password)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Hashing password error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Hashing password error", err)
 			return
 		}
 
 		err = db.EditUser(data.ID, data.Email, password, data.Fname, data.Lname, data.Privileges)
 		if err != nil {
-			successResponse(false, w)
-			helpers.ThrowErr(w, "Editing user error", err)
+			successResponse(false, w, r)
+			helpers.ThrowErr(w, r, "Editing user error", err)
 			return
 		}
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 	if err != nil {
-		helpers.ThrowErr(w, "JSON encoding error", err)
+		helpers.ThrowErr(w, r, "JSON encoding error", err)
 	}
 }
 
@@ -598,47 +599,47 @@ func userNew(w http.ResponseWriter, r *http.Request) {
 	var data models.UserEdit                     // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		helpers.ThrowErr(w, "JSON decoding error", err)
-		successResponse(false, w)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
+		successResponse(false, w, r)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	uuidString := context.Get(r, "uuid").(string)
 	uuid, err := strconv.Atoi(uuidString)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error converting string to int", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error converting string to int", err)
 	}
 
 	user, err := db.GetUserFromID(uuid)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error getting user from ID", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error getting user from ID", err)
 	}
 
 	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	password, err := helpers.HashPassword(data.Password)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Hashing password error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Hashing password error", err)
 		return
 	}
 
 	id, err := db.NewUser(data.Email, password, data.Fname, data.Lname, data.Privileges)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Creating user error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Creating user error", err)
 		return
 	}
 
@@ -648,8 +649,8 @@ func userNew(w http.ResponseWriter, r *http.Request) {
 	}
 	resEnc, err := json.Marshal(res) // Encode response into JSON.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON encoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON encoding error", err)
 		return
 	}
 	w.Write(resEnc) // Write JSON data to response writer.
@@ -659,53 +660,53 @@ func userDelete(w http.ResponseWriter, r *http.Request) {
 	var data models.UserEdit                     // Create struct to store data.
 	err := json.NewDecoder(r.Body).Decode(&data) // Decode response to struct.
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "JSON decoding error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "JSON decoding error", err)
 		return
 	}
 
 	if !middleware.AJAX(w, r, models.AJAXData{CsrfSecret: data.CsrfSecret}) {
 		// Failed middleware (invalid credentials)
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	uuidString := context.Get(r, "uuid").(string)
 	uuid, err := strconv.Atoi(uuidString)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error converting string to int", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error converting string to int", err)
 	}
 
 	user, err := db.GetUserFromID(uuid)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Error getting user from ID", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Error getting user from ID", err)
 	}
 
 	if user.Priv != models.PrivSuperAdmin {
 		// User isn't a super admin.
-		successResponse(false, w)
+		successResponse(false, w, r)
 		return
 	}
 
 	err = db.DeleteUser(data.ID)
 	if err != nil {
-		successResponse(false, w)
-		helpers.ThrowErr(w, "Deleting user error", err)
+		successResponse(false, w, r)
+		helpers.ThrowErr(w, r, "Deleting user error", err)
 		return
 	}
 
-	successResponse(true, w)
+	successResponse(true, w, r)
 }
 
-func successResponse(valid bool, w http.ResponseWriter) {
+func successResponse(valid bool, w http.ResponseWriter, r *http.Request) {
 	res := response{
 		Success: valid,
 	}
 	resEnc, err := json.Marshal(res) // Encode response into JSON.
 	if err != nil {
-		helpers.ThrowErr(w, "Sending success response error: %v", err)
+		helpers.ThrowErr(w, r, "Sending success response error: %v", err)
 	}
 	w.Write(resEnc) // Write JSON data to response writer.
 	return

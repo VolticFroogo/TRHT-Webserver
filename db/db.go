@@ -35,7 +35,25 @@ func InitDB() (err error) {
 	UpdateContactMessages()
 	UpdateUsers()
 	go jtiGarbageCollector()
+	go autoUpdate()
 	return
+}
+
+/*
+	For some reason (probably garbage collection) this program
+	loses all of it's data displayed everywhere so this compensates
+	for this by every so often updating itself automatically.
+*/
+func autoUpdate() {
+	ticker := time.NewTicker(time.Hour) // Tick every hour.
+	for {
+		<-ticker.C
+
+		UpdateSlides()
+		UpdateMenu()
+		UpdateContactMessages()
+		UpdateUsers()
+	}
 }
 
 /*

@@ -14,20 +14,20 @@ import (
 func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	authTokenString, err := r.Cookie("authToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
 	refreshTokenString, err := r.Cookie("refreshToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
 	if authTokenString.Value != "" {
 		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, "", false, false)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
@@ -41,14 +41,14 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	if refreshTokenString.Value != "" {
 		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, "", true, false)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
 		if refreshTokenValid {
 			newAuthTokenString, newRefreshTokenString, newCsrfSecret, err := myJWT.RefreshTokens(refreshTokenString.Value)
 			if err != nil {
-				helpers.ThrowErr(w, "Creating new tokens error", err)
+				helpers.ThrowErr(w, r, "Creating new tokens error", err)
 				return
 			}
 
@@ -67,13 +67,13 @@ func Admin(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	authTokenString, err := r.Cookie("authToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
 	refreshTokenString, err := r.Cookie("refreshToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
@@ -82,7 +82,7 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	if authTokenString.Value != "" {
 		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, csrfSecret, false, true)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
@@ -96,14 +96,14 @@ func Form(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 	if refreshTokenString.Value != "" {
 		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, csrfSecret, true, true)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
 		if refreshTokenValid {
 			newAuthTokenString, newRefreshTokenString, newCsrfSecret, err := myJWT.RefreshTokens(refreshTokenString.Value)
 			if err != nil {
-				helpers.ThrowErr(w, "Creating new tokens error", err)
+				helpers.ThrowErr(w, r, "Creating new tokens error", err)
 				return
 			}
 
@@ -124,20 +124,20 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 
 	authTokenString, err := r.Cookie("authToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
 	refreshTokenString, err := r.Cookie("refreshToken")
 	if err != nil {
-		helpers.ThrowErr(w, "Reading cookie error", err)
+		helpers.ThrowErr(w, r, "Reading cookie error", err)
 		return
 	}
 
 	if authTokenString.Value != "" {
 		authTokenValid, uuid, err := myJWT.CheckToken(authTokenString.Value, data.CsrfSecret, false, true)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
@@ -150,14 +150,14 @@ func AJAX(w http.ResponseWriter, r *http.Request, data models.AJAXData) (valid b
 	if refreshTokenString.Value != "" {
 		refreshTokenValid, uuid, err := myJWT.CheckToken(refreshTokenString.Value, data.CsrfSecret, true, true)
 		if err != nil {
-			helpers.ThrowErr(w, "Checking token error", err)
+			helpers.ThrowErr(w, r, "Checking token error", err)
 			return
 		}
 
 		if refreshTokenValid {
 			newAuthTokenString, newRefreshTokenString, newCsrfSecret, err := myJWT.RefreshTokens(refreshTokenString.Value)
 			if err != nil {
-				helpers.ThrowErr(w, "Creating new tokens error", err)
+				helpers.ThrowErr(w, r, "Creating new tokens error", err)
 				return
 			}
 
